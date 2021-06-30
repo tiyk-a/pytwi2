@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, twitter
+import os, twitter, urllib.parse
 from bottle import TEMPLATES, route, run, post, request
 from datetime import datetime
 
@@ -31,7 +31,7 @@ def twitter_post():
         access_token_secret=os.environ["ACCESS_TOKEN_SECRET"]
     )
     title = request.json['title']
-    api.PostUpdate(title)
+    api.PostUpdate(urllib.parse.unquote(title, encoding='shift-jis'))
     return "Tweeted (POST)"
 
 run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
