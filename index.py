@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, twitter, urllib.parse
-from bottle import TEMPLATES, route, run, post, request
+from bottle import TEMPLATES, route, run, post, request, HTTPResponse
 from datetime import datetime
 
 @route("/")
@@ -31,7 +31,15 @@ def twitter_post():
         access_token_secret=os.environ["ACCESS_TOKEN_SECRET"]
     )
     title = request.json['title']
-    api.PostUpdate(urllib.parse.unquote(title, encoding='shift-jis'))
-    return "Tweeted (POST)"
+    try:
+        api.PostUpdate(urllib.parse.unquote(title, encoding='shift-jis'))
+    except twitter.TwitterError as e:
+        print(e)
+        return HTTPResponse(status=201)
+    except Exception as e:
+        print(e)
+        return HTTPResponse(status=500)
+
+    return HTTPResponse(status=201)
 
 run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
