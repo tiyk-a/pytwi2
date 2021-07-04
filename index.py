@@ -25,6 +25,15 @@ def twitter_post():
         )
     )
 
+    # SixTONES Account
+    sixtones = Twitter(
+        auth=OAuth(
+            sixtones_token,
+            sixtones_token_secret,
+            sixtones_consumer_key,
+            sixtones_consumer_secret,
+        )
+    )
     # General Account
     t = Twitter(
         auth=OAuth(
@@ -41,6 +50,8 @@ def twitter_post():
         if teamId == 0: # N/A -> General Account
             t.statuses.update(status=title)
             snowman.statuses.update(status=title)
+        elif teamId == 2: # SixTONES
+            sixtones.statuses.update(status=title)
         elif teamId == 6: # Snowman
             snowman.statuses.update(status=title)
         elif teamId == 7: # 関ジャニ∞
