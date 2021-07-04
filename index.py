@@ -34,6 +34,17 @@ def twitter_post():
             sixtones_consumer_secret,
         )
     )
+
+    # King & Prince Account
+    kinpri = Twitter(
+        auth=OAuth(
+            kinpri_token,
+            kinpri_token_secret,
+            kinpri_consumer_key,
+            kinpri_consumer_secret,
+        )
+    )
+
     # General Account
     t = Twitter(
         auth=OAuth(
@@ -73,7 +84,7 @@ def twitter_post():
         elif teamId == 15: # ジャニーズWEST
             t.statuses.update(status=title)
         elif teamId == 16: # King & Prince
-            t.statuses.update(status=title)
+            kinpri.statuses.update(status=title)
         else: # General Account
             t.statuses.update(status=title)
     except twitter.TwitterError as e:

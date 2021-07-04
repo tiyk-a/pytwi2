@@ -14,3 +14,8 @@ sixtones_consumer_key = "MPTKYhz7EkjeVNh4j0VR2C69w" # アプリケーション�
 sixtones_consumer_secret = "DpgcVnwGUuQHqwi5vAvZoMmpFjmFOUCdAUssZEIB86Zpo1V9JV"  # アプリケーション管理画面のConsumer API Keys > API secret key
 sixtones_token = "1411427767443283969-MBBR0kluN2wuGpieJlTyWQSMlSaQFj"
 sixtones_token_secret = "iqUBAe4T6VrJTpY9BXISOAyup1qd9ajW5fx6HpxLxrepe"
+
+kinpri_consumer_key = "8xS3q8JsL8PUnTfUhNpH2nc4W" # アプリケーション管理画面のConsumer API Keys > API key
+kinpri_consumer_secret = "8KRpUqYabSwHEAxmajDSD35ctPse2pXqqT6trShlkvyam8GEC3"  # アプリケーション管理画面のConsumer API Keys > API secret key
+kinpri_token = "1411429221038116866-kcLXzQ3On9C4KtOwWxumEvF2urGg8R"
+kinpri_token_secret = "ZkqmnfLt4ZWKEj268sPvuxSAkMbbw0cWGtVLXGLUBioWY"
