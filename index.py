@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, twitter, urllib.parse
-from bottle import TEMPLATES, route, run, post, request, HTTPResponse
-from datetime import datetime
+from bottle import run, request, HTTPResponse
 
 from twitter import *
 from config import *
@@ -13,53 +12,59 @@ def hello_world():
 def hello():
     return "Hola"
 
-# @route('/twi/<msg>')
-# def twitter(msg):
-#     import twitter
-#     api = twitter.Api(consumer_key=os.environ["CONSUMER_KEY"],
-#         consumer_secret=os.environ["CONSUMER_SECRET"],
-#         access_token_key=os.environ["ACCESS_TOKEN_KEY"],
-#         access_token_secret=os.environ["ACCESS_TOKEN_SECRET"]
-#     )
-#     api.PostUpdate(msg)
-#     return "Tweeted"
-
 @route('/twi', method='POST')
 def twitter_post():
-    # import twitter
-    # api = twitter.Api(consumer_key=os.environ["CONSUMER_KEY"],
-    #     consumer_secret=os.environ["CONSUMER_SECRET"],
-    #     access_token_key=os.environ["ACCESS_TOKEN_KEY"],
-    #     access_token_secret=os.environ["ACCESS_TOKEN_SECRET"]
-    # )
+
+    # Snowman Account
     snowman = Twitter(
         auth=OAuth(
-            snowman_token, # token（config.txtの1行目）
-            snowman_token_secret, # token_secret（config.txtの2行目）
+            snowman_token,
+            snowman_token_secret,
             snowman_consumer_key,
             snowman_consumer_secret,
         )
     )
+
+    # General Account
     t = Twitter(
         auth=OAuth(
-            token, # token（config.txtの1行目）
-            token_secret, # token_secret（config.txtの2行目）
+            token,
+            token_secret,
             consumer_key,
             consumer_secret,
         )
     )
+
     teamId = request.json['teamId']
-    title = request.json['title']
+    title = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
     try:
-        if teamId == 0:
-            t.statuses.update(status=urllib.parse.unquote(title + "ue", encoding='shift-jis'))
-            snowman.statuses.update(status=urllib.parse.unquote(title + "shita", encoding='shift-jis'))
-        # elif teamId == 1:
-        #     t.statuses.update(status=urllib.parse.unquote(title + "ue", encoding='shift-jis'))
-        elif teamId == 6:
-            snowman.statuses.update(status=urllib.parse.unquote(title + "ue", encoding='shift-jis'))
-        else:
-            t.statuses.update(status=urllib.parse.unquote(title + "ue", encoding='shift-jis'))
+        if teamId == 0: # N/A -> General Account
+            t.statuses.update(status=title)
+            snowman.statuses.update(status=title)
+        elif teamId == 6: # Snowman
+            snowman.statuses.update(status=title)
+        elif teamId == 7: # 関ジャニ∞
+            t.statuses.update(status=title)
+        elif teamId == 8: # Sexy Zone
+            t.statuses.update(status=title)
+        elif teamId == 9: # TOKIO
+            t.statuses.update(status=title)
+        elif teamId == 10: # v6
+            t.statuses.update(status=title)
+        elif teamId == 11: # ARASHI
+            t.statuses.update(status=title)
+        elif teamId == 12: # NEWS
+            t.statuses.update(status=title)
+        elif teamId == 13: # Kis-My-Ft2
+            t.statuses.update(status=title)
+        elif teamId == 14: # A.B.C-Z
+            t.statuses.update(status=title)
+        elif teamId == 15: # ジャニーズWEST
+            t.statuses.update(status=title)
+        elif teamId == 16: # King & Prince
+            t.statuses.update(status=title)
+        else: # General Account
+            t.statuses.update(status=title)
     except twitter.TwitterError as e:
         print(e)
         return HTTPResponse(status=201)
