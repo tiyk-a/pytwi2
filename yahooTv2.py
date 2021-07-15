@@ -37,27 +37,7 @@ def findIdByKey(key):
                 i += 1
     return 0
 
-#Macとラズパイどちらでも同じコードで動くように、OSによって処理を分岐する
-# OS = platform.system()
-# if OS == 'Darwin': #Macの場合
-#     import chromedriver_binary
-# elif OS == 'Linux': #ラズベリーパイの場合
-#     pass
-
-output_file_path = 'program.csv'
-
-# area = '23' #どの都道府県の番組表を表示するか。23は東京都。
-
 url = 'https://tv.yahoo.co.jp/listings/'
-#地域情報を追加。省略（コメントアウト）可。省略時のデフォルト値は23(東京都）
-# url += ('a='+area+'&')
-#日付情報を追加。省略（コメントアウト）可。省略時のデフォルト値は現在日
-# url += ('d='+date+'&')
-# url += ('d=1626361200')
-#時刻情報を追加。省略（コメントアウト）可。省略時のデフォルト値は現在時
-# url += ('st='+starttime+'&')
-# #表示対象時間情報を追加。省略（コメントアウト）可。省略時のデフォルト値は6（単位は時間）
-# url += ('va='+duration_hour+'&')
 
 #Webページを読み込み、htmlを取得して、beautifulSoupでパース
 driver.set_window_position(-10000,0)
@@ -67,9 +47,8 @@ soup = BeautifulSoup(html,'html.parser')
 
 #番組表情報の取得
 soupdate = soup.find('div', class_='listingOptionWrap').find('option', {'selected': True})
-# print(soupdate.text)
 today = datetime.strptime(str(date.today()), '%Y-%m-%d')
-# today = dt.strftime('%m/%d')
+
 #番組表の上部に書かれているチャンネルリストの取得
 station_elems = soup.find_all('td', class_='listingTablesChannelItem')
 channel_list = []
