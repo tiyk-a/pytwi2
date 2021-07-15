@@ -19,3 +19,19 @@ kinpri_consumer_key = "8xS3q8JsL8PUnTfUhNpH2nc4W" # アプリケーション管�
 kinpri_consumer_secret = "8KRpUqYabSwHEAxmajDSD35ctPse2pXqqT6trShlkvyam8GEC3"  # アプリケーション管理画面のConsumer API Keys > API secret key
 kinpri_token = "1411429221038116866-kcLXzQ3On9C4KtOwWxumEvF2urGg8R"
 kinpri_token_secret = "ZkqmnfLt4ZWKEj268sPvuxSAkMbbw0cWGtVLXGLUBioWY"
+
+class teams:
+    snowman=[6,"スノーマン","すの","Snow Man"]
+    kanjani=[7,"カンジャニエイト","関ジャニ","関ジャニ∞"]
+    sexyzone=[8,"セクシーゾーン","セクゾ","Sexy Zone"]
+    tokio=[9,"トキオ",None,"TOKIO"]
+    v6=[10,"ブイシックス",None,"V6"]
+    arashi=[11,"アラシ","嵐","ARASHI"]
+    news=[12,"ニュース",None,"NEWS"]
+    kismyft2=[13,"キスマイフットツー","キスマイ","Kis-My-Ft2"]
+    abcz=[14,"エービーシーズィー","エビ","A.B.C-Z"]
+    johnnyswest=[15,"ジャニーズウェスト","ジャニスト","ジャニーズWEST"]
+    kingandprince=[16,"キングアンドプリンス","キンプリ","King & Prince"]
+    sixtones=[17,"ストーンズ","ストンズ","SixTONES"]
+
+    all_teams_array = [snowman, kanjani, sexyzone, tokio, v6, arashi, news, kismyft2, abcz, johnnyswest, kingandprince, sixtones]
