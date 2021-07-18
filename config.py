@@ -21,7 +21,7 @@ kinpri_token = "1411429221038116866-kcLXzQ3On9C4KtOwWxumEvF2urGg8R"
 kinpri_token_secret = "ZkqmnfLt4ZWKEj268sPvuxSAkMbbw0cWGtVLXGLUBioWY"
 
 class teams:
-    snowman=[6,"スノーマン","すの","SnowMan"]
+    snowman=[6,"スノーマン",None,"Snow Man"]
     kanjani=[7,"カンジャニエイト","関ジャニ","関ジャニ∞"]
     sexyzone=[8,"セクシーゾーン","セクゾ","Sexy Zone"]
     tokio=[9,"トキオ",None,"TOKIO"]
