@@ -53,7 +53,7 @@ if __name__ == '__main__':
 options = Options()
 # options = webdriver.ChromeOptions()
 # options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-options.binary_location = '/app/.chromedriver/bin'
+# options.binary_location = '/app/.chromedriver/bin/chromedriver'
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
@@ -102,7 +102,8 @@ url = 'https://tv.yahoo.co.jp/listings'
 @route("/main")
 def cron():
     # サービスの起動
-    service = Service(executable_path='/usr/local/bin/chromedriver-helper')
+    # service = Service(executable_path='/usr/local/bin/chromedriver-helper')
+    service = Service(executable_path='/app/.chromedriver/bin/chromedriver')
     try:
         service.start()
         # Chrome に接続
