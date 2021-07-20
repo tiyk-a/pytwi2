@@ -52,7 +52,8 @@ if __name__ == '__main__':
 # driver = webdriver.Chrome(ChromeDriverManager().install())
 options = Options()
 # options = webdriver.ChromeOptions()
-options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+# options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+options.binary_location = '/app/.chromedriver/bin'
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
