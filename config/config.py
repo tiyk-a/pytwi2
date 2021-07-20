@@ -20,7 +20,7 @@ kinpri_consumer_secret = "8KRpUqYabSwHEAxmajDSD35ctPse2pXqqT6trShlkvyam8GEC3"  #
 kinpri_token = "1411429221038116866-kcLXzQ3On9C4KtOwWxumEvF2urGg8R"
 kinpri_token_secret = "ZkqmnfLt4ZWKEj268sPvuxSAkMbbw0cWGtVLXGLUBioWY"
 
-class teams:
+class Teams:
     snowman=[6,"スノーマン",None,"Snow Man"]
     kanjani=[7,"カンジャニエイト","関ジャニ","関ジャニ∞"]
     sexyzone=[8,"セクシーゾーン","セクゾ","Sexy Zone"]
@@ -35,3 +35,7 @@ class teams:
     sixtones=[17,"ストーンズ","ストンズ","SixTONES"]
 
     all_teams_array = [snowman, kanjani, sexyzone, tokio, v6, arashi, kismyft2, abcz, johnnyswest, kingandprince, sixtones]
+
+# Yahoo TV
+ENV='production'
+CHROME='/app/.chromedriver/bin/chromedriver'

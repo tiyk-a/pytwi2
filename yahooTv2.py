@@ -2,16 +2,15 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-# from webdriver_manager.chrome import ChromeDriverManager
 import json
 from datetime import date, datetime
 import urllib.request
-import config
 import re
 import logging
 from datetime import datetime
 from bottle import route, run
 import os
+from config import *
  
 LOG_LEVEL_FILE = 'DEBUG'
 LOG_LEVEL_CONSOLE = 'INFO'
@@ -49,24 +48,11 @@ if __name__ == '__main__':
  
     datetime_now = datetime.now()
 
-# driver = webdriver.Chrome(ChromeDriverManager().install())
 options = Options()
-# options = webdriver.ChromeOptions()
-# options.binary_location = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-# options.binary_location = '/app/.chromedriver/bin/chromedriver'
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 options.add_argument('--no-sandbox')
 options.add_argument('--window-size=1200x600')
-
-# # サービスの起動
-# service = Service(executable_path='/usr/local/bin/chromedriver-helper')
-# try:
-#     service.start()
-#     # Chrome に接続
-#     driver = webdriver.Remote(service.service_url, desired_capabilities=options.to_capabilities())
-# except Exception as e:
-#     logger.error(e)
 
 def insertTvRecord(data):
     url = 'http://160.251.22.190/postTvProgram'
@@ -74,11 +60,7 @@ def insertTvRecord(data):
 
     req = urllib.request.Request(url)
     req.add_header('Content-Type', 'application/json')
-    # response = urllib.request.urlopen(req, json.dumps(data).encode())
     urllib.request.urlopen(req, json.dumps(data).encode())
-    # with response as res:
-    #     body = res.read()
-    #     print(body)
 
 def post(data):
     url = 'http://localhost:5000/twi'
@@ -102,8 +84,7 @@ url = 'https://tv.yahoo.co.jp/listings'
 @route("/main")
 def cron():
     # サービスの起動
-    # service = Service(executable_path='/usr/local/bin/chromedriver-helper')
-    service = Service(executable_path='/app/.chromedriver/bin/chromedriver')
+    service = Service(executable_path=CHROME)
     try:
         service.start()
         # Chrome に接続
@@ -111,7 +92,6 @@ def cron():
     except Exception as e:
         logger.error(e)
     # Webページを読み込み、htmlを取得して、beautifulSoupでパース
-    # driver.set_window_position(-10000,0)
     try:
         driver.get(url)
     except Exception as e:
@@ -121,7 +101,6 @@ def cron():
     soup = BeautifulSoup(html,'html.parser')
 
     # 番組表情報の取得
-    # soupdate = soup.find('div', class_='listingOptionWrap').find('option', {'selected': True})
     today = datetime.strptime(str(date.today()), '%Y-%m-%d')
 
     # 番組表の上部に書かれているチャンネルリストの取得
@@ -140,14 +119,10 @@ def cron():
             if channel != None:
                 channel = channel.text
         channel_list.append([num, channel])
-    # print(channel_list)
-
-    # 番組タイトルを含む要素の取得
-    # title_elems = soup.find_all('a', class_='listingTablesTextLink')
 
     # アーティスト名リスト
     key_list = []
-    for arr in config.teams.all_teams_array:
+    for arr in Teams.all_teams_array:
         key_list.append(arr[3])
         key_list.append(arr[2])
         key_list.append(arr[1])
@@ -179,23 +154,22 @@ def cron():
                 'keyword':e[0]
             }
             print(data)
-            return data
-            # insertTvRecord(data)
+            if ENV == 'dev':
+                return data
+            else:
+                insertTvRecord(data)
+                # ポストする
+                title = "[TEST]今日（" + str(today.strftime('%m/%d')) + "）のTV出演情報です%0A%0A" + e[2] + " " + e[1][1] + "%0A" + e[3] + "%0A" + e[4]
+                # url = 'http://localhost:5000/twi'
+                team_id = findIdByKey(e[0])
+                post_data = {
+                    'teamId': team_id,
+                    'title': title
+                }
+                post(post_data)
 
-            # ポストする
-            # title = "今日（" + str(today.strftime('%m/%d')) + "）のTV出演情報です%0A%0A" + e[2] + " " + e[1][1] + "%0A" + e[3] + "%0A" + e[4]
-            # # url = 'http://localhost:5000/twi'
-            # team_id = findIdByKey(e[0])
-            # post_data = {
-            #     'teamId': team_id,
-            #     'title': title
-            # }
-
-            # post(post_data)
-
-@route("/yahoo")
+@route("/env")
 def yahoo():
-    # return str(station_elems)
-    return "hello"
+    return ENV
 
 run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
