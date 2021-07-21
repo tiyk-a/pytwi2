@@ -1,2 +1,1 @@
-web: python index.py
-web: python yahooTv2.py -p
+web: python index.py -p
