@@ -21,7 +21,7 @@ def hello_world():
     return "Hello"
 
 @route('/twi', method='POST')
-def twitter_post():
+def twitter_post(data):
 
     # Snowman Account
     snowman = Twitter(
@@ -63,8 +63,14 @@ def twitter_post():
         )
     )
 
-    teamId = request.json['teamId']
-    title = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
+    if request != None and request.json != None and request.json['teamId'] != None and request.json['title']:
+        teamId = request.json['teamId']
+        title = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
+    elif data != None and data.get('teamId') != None and data.get('title') != None:
+        teamId = data.get('teamId')
+        title = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
+    else:
+        print("Error")
     try:
         if teamId == 0: # N/A -> General Account
             t.statuses.update(status=title)
@@ -154,13 +160,6 @@ def insertTvRecord(data):
     req.add_header('Content-Type', 'application/json')
     urllib.request.urlopen(req, json.dumps(data).encode())
 
-def post(data):
-    url = TWI_POST
-
-    req = urllib.request.Request(url)
-    req.add_header('Content-Type', 'application/json')
-    urllib.request.urlopen(req, json.dumps(data).encode())
-
 def findIdByKey(key):
     for arr in Teams.all_teams_array:
         i = 0
@@ -173,7 +172,7 @@ def findIdByKey(key):
 
 url = 'https://tv.yahoo.co.jp/listings'
 
-@route("/main")
+@route("/tv")
 def cron():
     # サービスの起動
     service = Service(executable_path=CHROME)
@@ -258,7 +257,7 @@ def cron():
                     'teamId': team_id,
                     'title': title
                 }
-                post(post_data)
+                twitter_post(post_data)
 
 @route("/env")
 def yahoo():
