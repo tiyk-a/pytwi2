@@ -39,3 +39,4 @@ class Teams:
 # Yahoo TV
 ENV='production'
 CHROME='/app/.chromedriver/bin/chromedriver'
+TWI_POST='http://pytwi2.herokuapp.com/twi'

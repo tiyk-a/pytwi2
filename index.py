@@ -155,7 +155,7 @@ def insertTvRecord(data):
     urllib.request.urlopen(req, json.dumps(data).encode())
 
 def post(data):
-    url = 'http://localhost:5000/twi'
+    url = TWI_POST
 
     req = urllib.request.Request(url)
     req.add_header('Content-Type', 'application/json')
