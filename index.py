@@ -162,7 +162,7 @@ def post(data):
     urllib.request.urlopen(req, json.dumps(data).encode())
 
 def findIdByKey(key):
-    for arr in config.teams.all_teams_array:
+    for arr in Teams.all_teams_array:
         i = 0
         while i < len(arr):
             if key in str(arr[i]):
