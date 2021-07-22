@@ -170,10 +170,15 @@ def findIdByKey(key):
                 i += 1
     return 0
 
-url = 'https://tv.yahoo.co.jp/listings'
-
+"""
+データを探します。
+search_url=検索先画面URL
+dateStr=検索日（string）、検索には不使用、DB保存の日付に使用
+recurseFlg=別日も続けて検索するかflag
+"""
 @route("/tv")
-def cron():
+def cron(search_url, dateStr, recurseFlg):
+    print("検索開始　search_url: ", search_url, "dateStr: ", dateStr,"recurseFlg: ", recurseFlg)
     # サービスの起動
     service = Service(executable_path=CHROME)
     try:
@@ -184,18 +189,15 @@ def cron():
         logger.error(e)
     # Webページを読み込み、htmlを取得して、beautifulSoupでパース
     try:
-        driver.get(url)
+        driver.get(search_url)
     except Exception as e:
         logger.error(e)
 
     html = driver.page_source.encode('utf-8')
     soup = BeautifulSoup(html,'html.parser')
 
-    # 番組表情報の取得
-    today = datetime.strptime(str(date.today()), '%Y-%m-%d')
-
     """
-    当日の情報を取得
+    その日の情報を取得
     """
     # 番組表の上部に書かれているチャンネルリストの取得
     station_elems = soup.find_all('td', class_='listingTablesChannelItem')
@@ -233,9 +235,10 @@ def cron():
                     site_json=json.loads(e.find('a', class_='listingTablesTextLink').attrs['data-tracking'])
                     channel_index = site_json.get("pos")
                     program_id = e.find('a', class_='listingTablesTextLink').attrs['href'].strip('/program/')
-                    store.append([key, channel_list[int(channel_index)-1], str(today.strftime('%Y/%m/%d')) + " " + e.find('span', class_='ListingTimeOut').text, e.find('a', class_='listingTablesTextLink').text, e.find('p', class_='listingTablesTextDescription').text, program_id])
+                    store.append([key, channel_list[int(channel_index)-1], dateStr + " " + e.find('span', class_='ListingTimeOut').text, e.find('a', class_='listingTablesTextLink').text, e.find('p', class_='listingTablesTextDescription').text, program_id])
                     break
 
+    # 検索結果データが1件以上あれば
     if len(store) > 0:
         for e in store:
             # DB保存する
@@ -248,10 +251,59 @@ def cron():
                 'keyword':e[0]
             }
             print(data)
-            if ENV == 'dev':
-                return data
-            else:
+            if ENV == 'production':
                 insertTvRecord(data)
+    
+    # 再帰フラグがTrueなら続けて調べるための日付とURLを調べる
+    if recurseFlg:
+        """
+        他の日付の情報も探したいからパラメタを探す
+        """
+        cal_links = soup.find_all('a', class_='calendarListingListItemLink')
+        cal_dates = soup.find_all('h2', class_='calendarListingListItemTitle')
+        date_link = {}
+        for e in cal_dates:
+            date_link[e.find('time')['datetime']] = cal_links[cal_dates.index(e)]['href']
+        
+        # 今日のはもう取得済みなのでリストから削除する
+        dateStrArr = dateStr.split("-")
+        if dateStrArr[1][0] == "0":
+            dateStrArr[1] = dateStrArr[1][1]
+        if dateStrArr[2][0] == "0":
+            dateStrArr[2] = dateStrArr[2][1]
+        dateStr = dateStrArr[0] + "-" + dateStrArr[1] + "-" + dateStrArr[2]
+        date_link.pop(dateStr)
+        return date_link
+
+"""
+TV番組検索指示を出します。
+①本日の番組を検索
+②続いて翌日以降の番組を検索（翌日と、その先2日にいっぺんずつ）
+"""
+@route("/search")
+def today_search():    
+    """
+    今日のテレビ欄を検索する
+    """
+    url = 'https://tv.yahoo.co.jp/listings'
+    future_date_links = cron(url, datetime.today().strftime('%Y-%m-%d'), True)
+
+    """
+    未来の日付のリンクも取得できたら検索しにいく。
+    returnされたものは受け取らない。
+    """
+    if len(future_date_links) > 0:
+        count = 0;
+        for k,v in future_date_links.items():
+            if count%2 == 0:
+                date_split = k.split("-")
+                if len(date_split[1]) == 1:
+                    k = date_split[0] + "-0" + date_split[1] + "-" + date_split[2]
+                elif len(date_split[2]) == 1:
+                    k = date_split[0] + "-" + date_split[1] + "-0" + date_split[2]
+
+                cron("https://tv.yahoo.co.jp" + v, datetime.strptime(k, '%Y-%m-%d').strftime('%Y-%m-%d'), False)
+            count+=1
 
 @route("/env")
 def yahoo():
