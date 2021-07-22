@@ -21,7 +21,7 @@ def hello_world():
     return "Hello"
 
 @route('/twi', method='POST')
-def twitter_post(data):
+def twitter_post(data=None):
 
     # Snowman Account
     snowman = Twitter(
@@ -194,6 +194,9 @@ def cron():
     # 番組表情報の取得
     today = datetime.strptime(str(date.today()), '%Y-%m-%d')
 
+    """
+    当日の情報を取得
+    """
     # 番組表の上部に書かれているチャンネルリストの取得
     station_elems = soup.find_all('td', class_='listingTablesChannelItem')
     channel_list = []
@@ -249,15 +252,6 @@ def cron():
                 return data
             else:
                 insertTvRecord(data)
-                # ポストする
-                title = "[TEST]今日（" + str(today.strftime('%m/%d')) + "）のTV出演情報です%0A%0A" + e[2] + " " + e[1][1] + "%0A" + e[3] + "%0A" + e[4]
-                # url = 'http://localhost:5000/twi'
-                team_id = findIdByKey(e[0])
-                post_data = {
-                    'teamId': team_id,
-                    'title': title
-                }
-                twitter_post(post_data)
 
 @route("/env")
 def yahoo():
