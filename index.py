@@ -53,6 +53,16 @@ def twitter_post(data=None):
         )
     )
 
+    # なにわ男子 Account 
+    naniwa = Twitter(
+        auth=OAuth(
+            naniwa_token,
+            naniwa_token_secret,
+            naniwa_consumer_key,
+            naniwa_consumer_secret,
+        )
+    )
+    
     # General Account
     t = Twitter(
         auth=OAuth(
@@ -99,6 +109,8 @@ def twitter_post(data=None):
             t.statuses.update(status=title)
         elif teamId == 16: # King & Prince
             kinpri.statuses.update(status=title)
+        elif teamId == 18: # なにわ男子
+            naniwa.statuses.update(status=title)
         else: # General Account
             t.statuses.update(status=title)
     except twitter.TwitterError as e:

@@ -20,6 +20,11 @@ kinpri_consumer_secret = "8KRpUqYabSwHEAxmajDSD35ctPse2pXqqT6trShlkvyam8GEC3"  #
 kinpri_token = "1411429221038116866-kcLXzQ3On9C4KtOwWxumEvF2urGg8R"
 kinpri_token_secret = "ZkqmnfLt4ZWKEj268sPvuxSAkMbbw0cWGtVLXGLUBioWY"
 
+naniwa_consumer_key = "Awd0aKTYLnco4mGLckcpqZb1l" # アプリケーション管理画面のConsumer API Keys > API key
+naniwa_consumer_secret = "feoBdYK9f2eXqK9chbVFj9sXalqHfWTj4zGpCkTAx6EXmIkZQD"  # アプリケーション管理画面のConsumer API Keys > API secret key
+naniwa_token = "1418288638345965568-MZ7oGsFW8VYhP6yoRJmostMNjbkfIX"
+naniwa_token_secret = "XwmkfXkCU572fmY6amv1Kn0z8I5c6fwkGWjXUWY4c6NjV"
+
 class Teams:
     snowman=[6,"スノーマン",None,"Snow Man"]
     kanjani=[7,"カンジャニエイト","関ジャニ","関ジャニ∞"]
@@ -33,8 +38,9 @@ class Teams:
     johnnyswest=[15,"ジャニーズウェスト","ジャニスト","ジャニーズWEST"]
     kingandprince=[16,"キングアンドプリンス","キンプリ","King & Prince"]
     sixtones=[17,"ストーンズ","ストンズ","SixTONES"]
+    naniwadanshi=[18,"ナニワダンシ",None,"なにわ男子"]
 
-    all_teams_array = [snowman, kanjani, sexyzone, tokio, v6, arashi, kismyft2, abcz, johnnyswest, kingandprince, sixtones]
+    all_teams_array = [snowman, kanjani, sexyzone, tokio, v6, arashi, kismyft2, abcz, johnnyswest, kingandprince, sixtones, naniwadanshi]
 
 # Yahoo TV
 ENV='production'
