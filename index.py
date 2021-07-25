@@ -62,7 +62,17 @@ def twitter_post(data=None):
             naniwa_consumer_secret,
         )
     )
-    
+
+   # SexyZone Account 
+    sexyzone = Twitter(
+        auth=OAuth(
+            sexyzone_token,
+            sexyzone_token_secret,
+            sexyzone_consumer_key,
+            sexyzone_consumer_secret,
+        )
+    )
+
     # General Account
     t = Twitter(
         auth=OAuth(
@@ -92,7 +102,7 @@ def twitter_post(data=None):
         elif teamId == 7: # 関ジャニ∞
             t.statuses.update(status=title)
         elif teamId == 8: # Sexy Zone
-            t.statuses.update(status=title)
+            sexyzone.statuses.update(status=title)
         elif teamId == 9: # TOKIO
             t.statuses.update(status=title)
         elif teamId == 10: # v6

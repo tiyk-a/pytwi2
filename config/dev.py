@@ -25,6 +25,11 @@ naniwa_consumer_secret = "feoBdYK9f2eXqK9chbVFj9sXalqHfWTj4zGpCkTAx6EXmIkZQD"  #
 naniwa_token = "1418288638345965568-MZ7oGsFW8VYhP6yoRJmostMNjbkfIX"
 naniwa_token_secret = "XwmkfXkCU572fmY6amv1Kn0z8I5c6fwkGWjXUWY4c6NjV"
 
+sexyzone_consumer_key = "GesY8Ma98NyDMPAITub9992Mr" # アプリケーション管理画面のConsumer API Keys > API key
+sexyzone_consumer_secret = "TbEX2vfmqKaqAlb6Abx8PfOrBhmHavGGJWmI6QeGa1yLZuAcKb"  # アプリケーション管理画面のConsumer API Keys > API secret key
+sexyzone_token = "1418289988827901953-82UyZRx5nMYzhQZw1kVoVQDGPl3wMd"
+sexyzone_token_secret = "KwV9YZ4Ni7yTitRUb0pe3c0ATivZ7CMVln2rPzANttxVW"
+
 class Teams:
     snowman=[6,"スノーマン",None,"Snow Man"]
     kanjani=[7,"カンジャニエイト","関ジャニ","関ジャニ∞"]
