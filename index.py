@@ -86,7 +86,6 @@ def twitter_post(data=None):
     try:
         if teamId == 0: # N/A -> General Account
             t.statuses.update(status=title)
-            snowman.statuses.update(status=title)
         elif teamId == 17: # SixTONES
             sixtones.statuses.update(status=title)
         elif teamId == 6: # Snowman
