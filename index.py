@@ -7,6 +7,8 @@ from config import *
 
 import urllib.request
 import logging
+from requests_oauthlib import OAuth1Session
+import json
 
 @route("/")
 def hello_world():
@@ -83,31 +85,13 @@ def twitter_post(data=None):
         title = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
     else:
         print("Error")
-    try:
-        if teamId == 0: # N/A -> General Account
-            t.statuses.update(status=title)
-        elif teamId == 17: # SixTONES
+    try: 
+        if teamId == 17: # SixTONES
             sixtones.statuses.update(status=title)
         elif teamId == 6: # Snowman
             snowman.statuses.update(status=title)
-        elif teamId == 7: # 関ジャニ∞
-            t.statuses.update(status=title)
         elif teamId == 8: # Sexy Zone
             sexyzone.statuses.update(status=title)
-        elif teamId == 9: # TOKIO
-            t.statuses.update(status=title)
-        elif teamId == 10: # v6
-            t.statuses.update(status=title)
-        elif teamId == 11: # ARASHI
-            t.statuses.update(status=title)
-        elif teamId == 12: # NEWS
-            t.statuses.update(status=title)
-        elif teamId == 13: # Kis-My-Ft2
-            t.statuses.update(status=title)
-        elif teamId == 14: # A.B.C-Z
-            t.statuses.update(status=title)
-        elif teamId == 15: # ジャニーズWEST
-            t.statuses.update(status=title)
         elif teamId == 16: # King & Prince
             kinpri.statuses.update(status=title)
         elif teamId == 18: # なにわ男子
@@ -128,20 +112,129 @@ LOG_LEVEL_CONSOLE = 'INFO'
  
 # フォーマットを指定 (https://docs.python.jp/3/library/logging.html#logrecord-attributes)
 _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lineno)d] %(message)s'
- 
- 
+
+'''
+https://qiita.com/yubais/items/dd143fe608ccad8e9f85
+引数1(twitterIdToFav)のツイートをファボします
+ファボするユーザーは引数2(teamId)
+'''
+@route('/twFav', method='GET')
+def twitter_fav(twitterIdToFav, teamId):
+
+    url = "https://api.twitter.com/1.1/favorites/create.json?id=" + twitterIdToFav;
+
+    activeAccount = oauthByTeamId(teamId)
+    req = activeAccount.post(url)
+
+    # レスポンスを確認
+    if req.status_code == 200:
+        print ("OK")
+    else:
+        print ("Error: %d" % req.status_code)
+
+'''
+https://qiita.com/yubais/items/dd143fe608ccad8e9f85
+引数1(userToFollow)のユーザーをフォロバします
+実行ユーザーは引数2(teamId)
+'''
+@route('/twFol', method='GET')
+def twitter_follow(userToFollow, teamId):
+
+    url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + userToFollow;
+
+    activeAccount = oauthByTeamId(teamId)
+    req = activeAccount.post(url)
+
+    # レスポンスを確認
+    if req.status_code == 200:
+        print ("OK")
+    else:
+        print ("Error: %d" % req.status_code)
+
+'''
+https://qiita.com/yubais/items/dd143fe608ccad8e9f85
+引数1(teamId)のアカで、(フォローしてされてるユーザー)-(フォローしてるユーザー)をして
+フォロバしていないユーザーはフォロバします
+'''
+@route('/twFolB', method='GET')
+def twitter_folB(teamId=0):
+
+    url_followers = "https://api.twitter.com/1.1/followers/ids.json"
+    url_follows = "https://api.twitter.com/1.1/friends/ids.json"
+
+    activeAccount = oauthByTeamId(teamId)
+
+    # フォローしてる人を確認します
+    req2 = activeAccount.get(url_follows)
+
+    # レスポンスを確認
+    if req2.status_code == 200:
+        print("***********************")
+        followingRes = json.loads(req2._content.decode('utf-8'))
+        # これがフォローしてる人のリスト
+        print(followingRes['ids'])
+    else:
+        print ("Error: %d" % req2.status_code)
+
+
+    # フォロワーを検索します
+    req = activeAccount.get(url_followers)
+    # レスポンスを確認
+    if req.status_code == 200:
+        followerRes = json.loads(req._content.decode('utf-8'))
+        # これがフォロワーのリスト
+        print(followerRes['ids'])
+    else:
+        print ("Error: %d" % req.status_code)
+
+    # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
+    followTargetArr = []
+    for twiId in followerRes['ids']:
+        if twiId not in followingRes['ids']:
+            followTargetArr.append(twiId)
+    
+    if len(followTargetArr) > 0:
+        for targetId in followTargetArr:
+            twitter_follow(targetId, teamId)
+
+"""
+teamIdを渡せばOAuthオブジェクトを返却します
+"""
+def oauthByTeamId(teamId=0):
+    # OAuth認証で POST method で投稿(チームごと異なる分岐)
+    activeAccount = None
+    try:
+        if teamId == 17: # SixTONES
+            activeAccount = OAuth1Session(sixtones_token, sixtones_token_secret, sixtones_consumer_key, sixtones_consumer_secret)
+        elif teamId == 6: # Snowman
+            activeAccount = OAuth1Session(snowman_token, snowman_token_secret, snowman_consumer_key, snowman_consumer_secret)
+        elif teamId == 16: # King & Prince
+            activeAccount = OAuth1Session(kinpri_token, kinpri_token_secret, kinpri_consumer_key, kinpri_consumer_secret)
+        elif teamId == 18: # なにわ男子
+            activeAccount = OAuth1Session(naniwa_token, naniwa_token_secret, naniwa_consumer_key, naniwa_consumer_secret)
+        elif teamId == 8: # Sexy Zone
+            activeAccount = OAuth1Session(sexyzone_token, sexyzone_token_secret, sexyzone_consumer_key, sexyzone_consumer_secret)
+        else: # General Account
+            activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
+    except Exception:
+        print ("Error on finding Twitter account")
+    
+    return activeAccount
+
 """
 LOG_LEVEL_FILEレベル以上のログをファイルに出力する設定
 """
 # datetime_moduleモジュールを呼び出す側(test.py)で出力形式などの基本設定をする
 logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL_FILE), # LOG_LEVEL_FILE = 'DEBUG' なら logging.DEBUGを指定していることになる
+    # LOG_LEVEL_FILE = 'DEBUG' なら logging.DEBUGを指定していることになる
+    level=getattr(logging, LOG_LEVEL_FILE),
     format=_detail_formatting,
     filename='./logs/yahoo.log'
 )
 
 console = logging.StreamHandler()
-console.setLevel(getattr(logging, LOG_LEVEL_CONSOLE)) # LOG_LEVEL_CONSOLE = 'INFO' なら logging.INFOを指定していることになる
+# LOG_LEVEL_CONSOLE = 'INFO' なら logging.INFOを指定していることになる
+console.setLevel(getattr(logging, LOG_LEVEL_CONSOLE))
 console_formatter = logging.Formatter(_detail_formatting)
 console.setFormatter(console_formatter)
 
