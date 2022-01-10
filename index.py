@@ -116,8 +116,9 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
 引数1(twitterIdToFav)のツイートをファボします
 ファボするユーザーは引数2(teamId)
+routeは用意してるが実質呼ばれることはなく、1つ下の'twitter_search'からinternalで呼ばれる
 '''
-@route('/twFav', method='GET')
+@route('/twFav?id=:twitterIdToFav&teamId=:teamId', method='GET')
 def twitter_fav(twitterIdToFav, teamId):
 
     url = "https://api.twitter.com/1.1/favorites/create.json?id=" + twitterIdToFav;
@@ -134,8 +135,9 @@ def twitter_fav(twitterIdToFav, teamId):
 検索ワードからツイートを検索します
 →ファボに使う
 [DEF]30件ファボしたら終わる
+Javaから呼んでます
 """
-@route('/twSearch', method='GET')
+@route('/twSearch?q=:word&teamId=:teamId', method='GET')
 def twitter_search(word, teamId):
     count = 0
     url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
@@ -152,18 +154,23 @@ def twitter_search(word, teamId):
             for item in resJson["statuses"]:
                 status = twitter_fav(item["id_str"], teamId)
                 if status == 200:
+                    print(item["id_str"] + "Success teamId=" + teamId)
                     count = count + 1
                 elif status == (429 or 403):
+                    print("Error: " + status + ". Break transaction.")
                     return
         else:
             print ("Error: %d" % req.status_code)
+    
+    return 200
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
 引数1(userToFollow)のユーザーをフォロバします
 実行ユーザーは引数2(teamId)
+routeはあるが実質'twitter_folB'からinternalで呼ばれます
 '''
-@route('/twFol', method='GET')
+@route('/twFol?id=:userToFollow&teamId=:teamId', method='GET')
 def twitter_follow(userToFollow, teamId):
 
     url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + userToFollow;
@@ -176,13 +183,15 @@ def twitter_follow(userToFollow, teamId):
         print ("OK")
     else:
         print ("Error: %d" % req.status_code)
+    return req.status_code
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
 引数1(teamId)のアカで、(フォローしてされてるユーザー)-(フォローしてるユーザー)をして
 フォロバしていないユーザーはフォロバします
+Javaから呼んでます
 '''
-@route('/twFolB', method='GET')
+@route('/twFolB?teamId=:teamId', method='GET')
 def twitter_folB(teamId=0):
 
     url_followers = "https://api.twitter.com/1.1/followers/ids.json"
@@ -221,7 +230,8 @@ def twitter_folB(teamId=0):
     
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
-            twitter_follow(targetId, teamId)
+            status = twitter_follow(targetId, teamId)
+    return 200
 
 """
 teamIdを渡せばOAuthオブジェクトを返却します
