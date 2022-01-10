@@ -2,7 +2,6 @@
 import os, twitter, urllib.parse
 from bottle import run, route, request, HTTPResponse
 
-from twitter import *
 from config import *
 
 import urllib.request
@@ -127,10 +126,37 @@ def twitter_fav(twitterIdToFav, teamId):
     req = activeAccount.post(url)
 
     # レスポンスを確認
-    if req.status_code == 200:
-        print ("OK")
-    else:
+    if req.status_code != (200 or 403):
         print ("Error: %d" % req.status_code)
+    return req.status_code
+
+"""
+検索ワードからツイートを検索します
+→ファボに使う
+[DEF]30件ファボしたら終わる
+"""
+@route('/twSearch', method='GET')
+def twitter_search(word, teamId):
+    count = 0
+    url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
+
+    activeAccount = oauthByTeamId(teamId)
+
+    while count < 30:
+        req = activeAccount.get(url)
+
+        # レスポンスを確認
+        if req.status_code == 200:
+            resJson = json.loads(req._content.decode('utf-8'))
+            
+            for item in resJson["statuses"]:
+                status = twitter_fav(item["id_str"], teamId)
+                if status == 200:
+                    count = count + 1
+                elif status == (429 or 403):
+                    return
+        else:
+            print ("Error: %d" % req.status_code)
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -199,6 +225,7 @@ def twitter_folB(teamId=0):
 
 """
 teamIdを渡せばOAuthオブジェクトを返却します
+ジャニ以外のTwitterアカも対応
 """
 def oauthByTeamId(teamId=0):
     # OAuth認証で POST method で投稿(チームごと異なる分岐)
@@ -214,11 +241,18 @@ def oauthByTeamId(teamId=0):
             activeAccount = OAuth1Session(naniwa_token, naniwa_token_secret, naniwa_consumer_key, naniwa_consumer_secret)
         elif teamId == 8: # Sexy Zone
             activeAccount = OAuth1Session(sexyzone_token, sexyzone_token_secret, sexyzone_consumer_key, sexyzone_consumer_secret)
+        elif teamId == 100: # @LjtYdg
+            activeAccount = OAuth1Session(love_token, love_token_secret, love_consumer_key, love_consumer_secret)
+        elif teamId == 101: # @ChiccaSalak
+            activeAccount = OAuth1Session(tosi_token, tosi_token_secret, tosi_consumer_key, tosi_consumer_secret)
+        elif teamId == 102: # @BlogChicca
+            activeAccount = OAuth1Session(engineer_token, engineer_token_secret, engineer_consumer_key, engineer_consumer_secret)
+        elif teamId == 103: # @Berry_chicca
+            activeAccount = OAuth1Session(berry_token, berry_token_secret, berry_consumer_key, berry_consumer_secret)
         else: # General Account
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
     except Exception:
         print ("Error on finding Twitter account")
-    
     return activeAccount
 
 """
