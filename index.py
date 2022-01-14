@@ -13,104 +13,36 @@ import json
 def hello_world():
     return 'Hello', 200
 
-@route('/twi', method='POST')
-def twitter_post(data=None):
-
-    # Snowman Account
-    snowman = Twitter(
-        auth=OAuth(
-            snowman_token,
-            snowman_token_secret,
-            snowman_consumer_key,
-            snowman_consumer_secret,
-        )
-    )
-
-    # SixTONES Account
-    sixtones = Twitter(
-        auth=OAuth(
-            sixtones_token,
-            sixtones_token_secret,
-            sixtones_consumer_key,
-            sixtones_consumer_secret,
-        )
-    )
-
-    # King & Prince Account
-    kinpri = Twitter(
-        auth=OAuth(
-            kinpri_token,
-            kinpri_token_secret,
-            kinpri_consumer_key,
-            kinpri_consumer_secret,
-        )
-    )
-
-    # なにわ男子 Account 
-    naniwa = Twitter(
-        auth=OAuth(
-            naniwa_token,
-            naniwa_token_secret,
-            naniwa_consumer_key,
-            naniwa_consumer_secret,
-        )
-    )
-
-   # SexyZone Account 
-    sexyzone = Twitter(
-        auth=OAuth(
-            sexyzone_token,
-            sexyzone_token_secret,
-            sexyzone_consumer_key,
-            sexyzone_consumer_secret,
-        )
-    )
-
-    # General Account
-    t = Twitter(
-        auth=OAuth(
-            token,
-            token_secret,
-            consumer_key,
-            consumer_secret,
-        )
-    )
-
-    if request != None and request.json != None and request.json['teamId'] != None and request.json['title']:
-        teamId = request.json['teamId']
-        title = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
-    elif data != None and data.get('teamId') != None and data.get('title') != None:
-        teamId = data.get('teamId')
-        title = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
-    else:
-        print("Error")
-    try: 
-        if teamId == 17: # SixTONES
-            sixtones.statuses.update(status=title)
-        elif teamId == 6: # Snowman
-            snowman.statuses.update(status=title)
-        elif teamId == 8: # Sexy Zone
-            sexyzone.statuses.update(status=title)
-        elif teamId == 16: # King & Prince
-            kinpri.statuses.update(status=title)
-        elif teamId == 18: # なにわ男子
-            naniwa.statuses.update(status=title)
-        else: # General Account
-            t.statuses.update(status=title)
-    except twitter.TwitterError as e:
-        print(e)
-        return HTTPResponse(status=201)
-    except Exception as e:
-        print(e)
-        return HTTPResponse(status=500)
-
-    return HTTPResponse(status=201)
-
 LOG_LEVEL_FILE = 'DEBUG'
 LOG_LEVEL_CONSOLE = 'INFO'
  
 # フォーマットを指定 (https://docs.python.jp/3/library/logging.html#logrecord-attributes)
 _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lineno)d] %(message)s'
+
+@route('/twi', method='POST')
+def twitter_post(data=None):
+
+    try:
+        if request != None and request.json != None and request.json['teamId'] != None and request.json['title']:
+            teamId = request.json['teamId']
+            msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
+        elif data != None and data.get('teamId') != None and data.get('title') != None:
+            teamId = data.get('teamId')
+            msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
+        else:
+            print("Error")
+
+        url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
+
+        activeAccount = oauthByTeamId(teamId)
+        req = activeAccount.post(url)
+
+        # レスポンスを確認
+        if req.status_code != (200 or 403):
+            print ("Error: %d" % req.status_code)
+        return req.status_code
+    except:
+        print(Exception)
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
