@@ -174,23 +174,23 @@ def oauthByTeamId(teamId=0):
     activeAccount = None
     try:
         if teamId == 17: # SixTONES
-            activeAccount = OAuth1Session(sixtones_token, sixtones_token_secret, sixtones_consumer_key, sixtones_consumer_secret)
+            activeAccount = OAuth1Session(sixtones_consumer_key, sixtones_consumer_secret, sixtones_token, sixtones_token_secret)
         elif teamId == 6: # Snowman
-            activeAccount = OAuth1Session(snowman_token, snowman_token_secret, snowman_consumer_key, snowman_consumer_secret)
+            activeAccount = OAuth1Session(snowman_consumer_key, snowman_consumer_secret, snowman_token, snowman_token_secret)
         elif teamId == 16: # King & Prince
             activeAccount = OAuth1Session(kinpri_token, kinpri_token_secret, kinpri_consumer_key, kinpri_consumer_secret)
         elif teamId == 18: # なにわ男子
-            activeAccount = OAuth1Session(naniwa_token, naniwa_token_secret, naniwa_consumer_key, naniwa_consumer_secret)
+            activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret)
         elif teamId == 8: # Sexy Zone
-            activeAccount = OAuth1Session(sexyzone_token, sexyzone_token_secret, sexyzone_consumer_key, sexyzone_consumer_secret)
+            activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret)
         elif teamId == 100: # @LjtYdg
-            activeAccount = OAuth1Session(love_token, love_token_secret, love_consumer_key, love_consumer_secret)
+            activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret)
         elif teamId == 101: # @ChiccaSalak
-            activeAccount = OAuth1Session(tosi_token, tosi_token_secret, tosi_consumer_key, tosi_consumer_secret)
+            activeAccount = OAuth1Session(tosi_consumer_key, tosi_consumer_secret, tosi_token, tosi_token_secret)
         elif teamId == 102: # @BlogChicca
-            activeAccount = OAuth1Session(engineer_token, engineer_token_secret, engineer_consumer_key, engineer_consumer_secret)
+            activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret)
         elif teamId == 103: # @Berry_chicca
-            activeAccount = OAuth1Session(berry_token, berry_token_secret, berry_consumer_key, berry_consumer_secret)
+            activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret)
         else: # General Account
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
     except Exception:
