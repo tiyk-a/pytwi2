@@ -75,6 +75,7 @@ def twitter_fav(twitterIdToFav, teamId):
 →ファボに使う
 [DEF]30件ファボしたら終わる
 Javaから呼んでます
+https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%96%E3%81%A3%E3%81%9F%E3%83%91%E3%83%A9%E3%83%A1%E3%83%BC%E3%82%BF%E3%82%92%E5%88%A9%E7%94%A8%E3%81%99%E3%82%8B
 """
 @route('/twSearch', method='GET')
 def twitter_search():
@@ -142,18 +143,10 @@ https://qiita.com/yubais/items/dd143fe608ccad8e9f85
 フォロバしていないユーザーはフォロバします
 Javaから呼んでます
 '''
-@route('/twFolB', method='POST')
-def twitter_folB(data=None):
+@route('/twFolB', method='GET')
+def twitter_folB():
 
-    try:
-        if request != None and request.json != None and request.json['teamId'] != None:
-            teamId = request.json['teamId']
-        elif data != None and data.get('teamId') != None and data.get('title') != None:
-            teamId = data.get('teamId')
-        else:
-            print("Error")
-    except:
-        print(vars(Exception), location())
+    teamId = request.query.get('teamId')
 
     url_followers = "https://api.twitter.com/1.1/followers/ids.json"
     url_follows = "https://api.twitter.com/1.1/friends/ids.json"
