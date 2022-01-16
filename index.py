@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from ast import Str
 import os, twitter, urllib.parse
 from bottle import run, route, request, HTTPResponse
+from bottle import get, post, request
+import inspect
 
 from config import *
 
@@ -8,6 +11,10 @@ import urllib.request
 import logging
 from requests_oauthlib import OAuth1Session
 import json
+
+def location(depth=0):
+    frame = inspect.currentframe().f_back
+    return (frame.f_code.co_filename, frame.f_lineno)
 
 @route("/")
 def hello_world():
@@ -30,7 +37,7 @@ def twitter_post(data=None):
             teamId = data.get('teamId')
             msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
         else:
-            print("Error")
+            print("Error", location())
 
         url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
 
@@ -42,7 +49,7 @@ def twitter_post(data=None):
             print ("Error: %d" % req.status_code)
         return req.status_code
     except:
-        print(Exception)
+        print(vars(Exception))
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -60,7 +67,7 @@ def twitter_fav(twitterIdToFav, teamId):
 
     # レスポンスを確認
     if req.status_code != (200 or 403):
-        print ("Error: %d" % req.status_code)
+        print ("Error: %d" % req.status_code, location())
     return req.status_code
 
 """
@@ -69,30 +76,33 @@ def twitter_fav(twitterIdToFav, teamId):
 [DEF]30件ファボしたら終わる
 Javaから呼んでます
 """
-@route('/twSearch?q=:word&teamId=:teamId', method='GET')
-def twitter_search(word, teamId):
+@route('/twSearch', method='GET')
+def twitter_search():
+    word = request.query.get('q')
+    teamId = request.query.get('teamId')
+    print(teamId)
     count = 0
     url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
 
     activeAccount = oauthByTeamId(teamId)
+    req = activeAccount.get(url)
 
-    while count < 30:
-        req = activeAccount.get(url)
-
-        # レスポンスを確認
-        if req.status_code == 200:
-            resJson = json.loads(req._content.decode('utf-8'))
-            
-            for item in resJson["statuses"]:
-                status = twitter_fav(item["id_str"], teamId)
-                if status == 200:
-                    print(item["id_str"] + "Success teamId=" + teamId)
-                    count = count + 1
-                elif status == (429 or 403):
-                    print("Error: " + status + ". Break transaction.")
-                    return
-        else:
-            print ("Error: %d" % req.status_code)
+    # レスポンスを確認
+    if req.status_code == 200:
+        resJson = json.loads(req._content.decode('utf-8'))
+        
+        for item in resJson["statuses"]:
+            status = twitter_fav(item["id_str"], teamId)
+            if status == 200:
+                print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
+                count = count + 1
+            elif status == (429 or 403):
+                print("Error: " + status + ". Break transaction.")
+                return
+            if count >= 30:
+                break
+    else:
+        print ("Error: %d" % req.status_code, location())
     
     return 200
 
@@ -105,17 +115,26 @@ routeはあるが実質'twitter_folB'からinternalで呼ばれます
 @route('/twFol?id=:userToFollow&teamId=:teamId', method='GET')
 def twitter_follow(userToFollow, teamId):
 
-    url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + userToFollow;
+    url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + str(userToFollow);
 
     activeAccount = oauthByTeamId(teamId)
     req = activeAccount.post(url)
+    resCode = None
 
     # レスポンスを確認
     if req.status_code == 200:
-        print ("OK")
+        print ("OK: ", userToFollow)
+        resCode = req.status_code
+    elif req.status_code == 403:
+        res = json.loads(req._content.decode('utf-8'))
+        errCode = res["errors"][0]["code"]
+        if errCode == 160:
+            print("Request sent", userToFollow)
+            resCode = 200
     else:
-        print ("Error: %d" % req.status_code)
-    return req.status_code
+        print ("Error: %d" % req.status_code, userToFollow, location())
+        resCode = req.status_code
+    return resCode
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -123,8 +142,18 @@ https://qiita.com/yubais/items/dd143fe608ccad8e9f85
 フォロバしていないユーザーはフォロバします
 Javaから呼んでます
 '''
-@route('/twFolB?teamId=:teamId', method='GET')
-def twitter_folB(teamId=0):
+@route('/twFolB', method='POST')
+def twitter_folB(data=None):
+
+    try:
+        if request != None and request.json != None and request.json['teamId'] != None:
+            teamId = request.json['teamId']
+        elif data != None and data.get('teamId') != None and data.get('title') != None:
+            teamId = data.get('teamId')
+        else:
+            print("Error")
+    except:
+        print(vars(Exception), location())
 
     url_followers = "https://api.twitter.com/1.1/followers/ids.json"
     url_follows = "https://api.twitter.com/1.1/friends/ids.json"
@@ -141,7 +170,7 @@ def twitter_folB(teamId=0):
         # これがフォローしてる人のリスト
         print(followingRes['ids'])
     else:
-        print ("Error: %d" % req2.status_code)
+        print ("Error: %d" % req2.status_code, location())
 
 
     # フォロワーを検索します
@@ -152,7 +181,7 @@ def twitter_folB(teamId=0):
         # これがフォロワーのリスト
         print(followerRes['ids'])
     else:
-        print ("Error: %d" % req.status_code)
+        print ("Error: %d" % req.status_code, location())
 
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
@@ -170,6 +199,10 @@ teamIdを渡せばOAuthオブジェクトを返却します
 ジャニ以外のTwitterアカも対応
 """
 def oauthByTeamId(teamId=0):
+
+    if type(teamId) == str:
+        teamId = int(teamId)
+
     # OAuth認証で POST method で投稿(チームごと異なる分岐)
     activeAccount = None
     try:
@@ -194,7 +227,7 @@ def oauthByTeamId(teamId=0):
         else: # General Account
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
     except Exception:
-        print ("Error on finding Twitter account")
+        print ("Error on finding Twitter account", location())
     return activeAccount
 
 """
