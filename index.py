@@ -28,28 +28,38 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 
 @route('/twi', method='POST')
 def twitter_post(data=None):
+    
+    teamId = request.query.get('teamId')
+
+    proceedFlg = True
 
     try:
-        if request != None and request.json != None and request.json['teamId'] != None and request.json['title']:
-            teamId = request.json['teamId']
+        if teamId == None:
+            print("teamIdが見つかりませんでした ", location(), " ", request)
+            proceedFlg = False
+
+        if request != None and request.json != None and request.json['title'] != None:
             msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
-        elif data != None and data.get('teamId') != None and data.get('title') != None:
-            teamId = data.get('teamId')
+        elif data != None and data.get('title') != None:
             msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
         else:
-            print("teamIdが見つかりませんでした ", location(), " ", request)
+            print("msgが見つかりません ", location())
+            proceedFlg = False
 
-        url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
+        if proceedFlg:
+            url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
 
-        activeAccount = oauthByTeamId(teamId)
-        req = activeAccount.post(url)
+            activeAccount = oauthByTeamId(teamId)
+            req = activeAccount.post(url)
 
-        # レスポンスを確認
-        if req.status_code != (200 or 403):
-            print ("Error: %d" % req.status_code, location(), " ", req)
-        return req.status_code
-    except:
-        print(vars(Exception))
+            # レスポンスを確認
+            if req.status_code != (200 or 403):
+                print ("Error: %d" % req.status_code, location(), " ", req)
+            return req.status_code
+        else:
+            print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
+    except Exception as e:
+        print(sys.exc_info(), location())
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -67,7 +77,7 @@ def twitter_fav(twitterIdToFav, teamId):
 
     # レスポンスを確認
     if req.status_code != (200 or 403):
-        print ("Error: %d" % req.status_code, location())
+        print ("Error: %d" % req.status_code, location(), req)
     return req.status_code
 
 """
@@ -103,7 +113,7 @@ def twitter_search():
             if count >= 30:
                 break
     else:
-        print ("Error: %d" % req.status_code, location())
+        print ("Error: %d" % req.status_code, location(), " ", str(req))
     
     return 200
 

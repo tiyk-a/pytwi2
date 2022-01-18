@@ -29,3 +29,11 @@
 }
 ```
 上のデータの場合、"apptest"という文字列がジャニ総合アカウントにポストされるはず
+
+# 本番環境
+* heroku
+* Job
+停止中
+```
+$ python retweet.py Infinity_rJP arashi5official kingandprince_j tokioinc_taichi smileup_project islandtv_up J_DREAMIsLAND
+```
