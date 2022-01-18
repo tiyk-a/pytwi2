@@ -37,7 +37,7 @@ def twitter_post(data=None):
             teamId = data.get('teamId')
             msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
         else:
-            print("Error", location())
+            print("teamIdが見つかりませんでした ", location(), " ", request)
 
         url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
 
@@ -46,7 +46,7 @@ def twitter_post(data=None):
 
         # レスポンスを確認
         if req.status_code != (200 or 403):
-            print ("Error: %d" % req.status_code)
+            print ("Error: %d" % req.status_code, location(), " ", req)
         return req.status_code
     except:
         print(vars(Exception))
