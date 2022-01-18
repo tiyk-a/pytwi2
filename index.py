@@ -54,15 +54,16 @@ def twitter_post(data=None):
 
             # レスポンスを確認
             if req.status_code != (200 or 403):
-                print ("Error: %d" % req.status_code, location(), " ", req.args)
-                print (vars(req))
-                print (str(req))
-                print (sys.exc_info())
+                print ("Error: %d" % req.status_code, location(), " ")
+                print ("vars(req) ", vars(req))
+                print ("str(req) ", str(req))
+                print ("sys.exc_info()", sys.exc_info())
             return req.status_code
         else:
             print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
     except Exception as e:
         print(sys.exc_info(), location())
+    return None
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
