@@ -47,6 +47,7 @@ def twitter_post(data=None):
             proceedFlg = False
 
         if proceedFlg:
+            print("msg: ", msg)
             url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
 
             activeAccount = oauthByTeamId(teamId)
@@ -56,8 +57,6 @@ def twitter_post(data=None):
             if req.status_code != (200 or 403):
                 print ("Error: %d" % req.status_code, location(), " ")
                 print ("vars(req) ", vars(req))
-                print ("str(req) ", str(req))
-                print ("sys.exc_info()", sys.exc_info())
             return req.status_code
         else:
             print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
