@@ -28,7 +28,7 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 
 @route('/twi', method='POST')
 def twitter_post(data=None):
-    
+
     teamId = request.query.get('teamId')
 
     proceedFlg = True
@@ -54,7 +54,10 @@ def twitter_post(data=None):
 
             # レスポンスを確認
             if req.status_code != (200 or 403):
-                print ("Error: %d" % req.status_code, location(), " ", req)
+                print ("Error: %d" % req.status_code, location(), " ", req.args)
+                print (vars(req))
+                print (str(req))
+                print (sys.exc_info())
             return req.status_code
         else:
             print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
@@ -202,6 +205,7 @@ teamIdを渡せばOAuthオブジェクトを返却します
 ジャニ以外のTwitterアカも対応
 """
 def oauthByTeamId(teamId=0):
+    print("oauthByTeamId")
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -210,24 +214,34 @@ def oauthByTeamId(teamId=0):
     activeAccount = None
     try:
         if teamId == 17: # SixTONES
+            print(17)
             activeAccount = OAuth1Session(sixtones_consumer_key, sixtones_consumer_secret, sixtones_token, sixtones_token_secret)
         elif teamId == 6: # Snowman
+            print(6)
             activeAccount = OAuth1Session(snowman_consumer_key, snowman_consumer_secret, snowman_token, snowman_token_secret)
         elif teamId == 16: # King & Prince
+            print(16)
             activeAccount = OAuth1Session(kinpri_token, kinpri_token_secret, kinpri_consumer_key, kinpri_consumer_secret)
         elif teamId == 18: # なにわ男子
+            print(18)
             activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret)
         elif teamId == 8: # Sexy Zone
+            print(8)
             activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret)
         elif teamId == 100: # @LjtYdg
+            print(100)
             activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret)
         elif teamId == 101: # @ChiccaSalak
+            print(101)
             activeAccount = OAuth1Session(tosi_consumer_key, tosi_consumer_secret, tosi_token, tosi_token_secret)
         elif teamId == 102: # @BlogChicca
+            print(102)
             activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret)
         elif teamId == 103: # @Berry_chicca
+            print(103)
             activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret)
         else: # General Account
+            print("General")
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
     except Exception:
         print ("Error on finding Twitter account", location())
