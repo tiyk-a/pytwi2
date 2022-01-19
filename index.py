@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from ast import Str
-import os, twitter, urllib.parse
-from bottle import run, route, request, HTTPResponse
-from bottle import get, post, request
+import os, urllib.parse
+from bottle import run, route, request
+from bottle import request
 import inspect
 
 from config import *
@@ -48,11 +47,19 @@ def twitter_post(data=None):
 
         if proceedFlg:
             print("msg: ", msg)
-            url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg;
 
             activeAccount = oauthByTeamId(teamId)
-            req = activeAccount.post(url)
 
+            # Tw API verをチェックし処理分岐
+            twApiVer2 = twApiVer2(teamId)
+            if twApiVer2:
+                url = "https://api.twitter.com/2/tweets"
+                data = {"text" : msg}
+                req = activeAccount.post(url, data)
+            else:
+                url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg
+                req = activeAccount.post(url)
+                
             # レスポンスを確認
             if req.status_code != (200 or 403):
                 print ("Error: %d" % req.status_code, location(), " ")
@@ -73,8 +80,14 @@ routeは用意してるが実質呼ばれることはなく、1つ下の'twitter
 @route('/twFav?id=:twitterIdToFav&teamId=:teamId', method='GET')
 def twitter_fav(twitterIdToFav, teamId):
 
-    url = "https://api.twitter.com/1.1/favorites/create.json?id=" + twitterIdToFav;
-
+    # Tw API verをチェックし処理分岐
+    twApiVer2 = twApiVer2(teamId)
+    if twApiVer2:
+        # ユーザーIDがわからないとfavできなくなった。対処法を考えないと
+        return 555
+    else:
+        url = "https://api.twitter.com/1.1/favorites/create.json?id=" + twitterIdToFav
+    
     activeAccount = oauthByTeamId(teamId)
     req = activeAccount.post(url)
 
@@ -94,9 +107,14 @@ https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%9
 def twitter_search():
     word = request.query.get('q')
     teamId = request.query.get('teamId')
-    print(teamId)
     count = 0
-    url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
+
+    # Tw API verをチェックし処理分岐
+    apiVer2 = twApiVer2(teamId)
+    if apiVer2:
+        return 556
+    else:
+        url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
 
     activeAccount = oauthByTeamId(teamId)
     req = activeAccount.get(url)
@@ -129,10 +147,19 @@ routeはあるが実質'twitter_folB'からinternalで呼ばれます
 @route('/twFol?id=:userToFollow&teamId=:teamId', method='GET')
 def twitter_follow(userToFollow, teamId):
 
-    url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + str(userToFollow);
-
     activeAccount = oauthByTeamId(teamId)
-    req = activeAccount.post(url)
+
+    # Tw API verをチェックし処理分岐
+    apiVer2 = twApiVer2(teamId)
+    if apiVer2:
+        accountId= twitterIdByTeamId(teamId)
+        url = "https://api.twitter.com/2/users/" + accountId + "/following"
+        data = {"target_user_id" : userToFollow}
+        req = activeAccount.post(url, data)
+    else:
+        url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + str(userToFollow)
+        req = activeAccount.post(url)
+    
     resCode = None
 
     # レスポンスを確認
@@ -161,8 +188,15 @@ def twitter_folB():
 
     teamId = request.query.get('teamId')
 
-    url_followers = "https://api.twitter.com/1.1/followers/ids.json"
-    url_follows = "https://api.twitter.com/1.1/friends/ids.json"
+    # Tw API verをチェックし処理分岐
+    apiVer2 = twApiVer2(teamId)
+    if apiVer2:
+        accountId= twitterIdByTeamId(teamId)
+        url_followers = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
+        url_follows = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
+    else:
+        url_followers = "https://api.twitter.com/1.1/followers/ids.json"
+        url_follows = "https://api.twitter.com/1.1/friends/ids.json"
 
     activeAccount = oauthByTeamId(teamId)
 
@@ -171,10 +205,7 @@ def twitter_folB():
 
     # レスポンスを確認
     if req2.status_code == 200:
-        print("***********************")
         followingRes = json.loads(req2._content.decode('utf-8'))
-        # これがフォローしてる人のリスト
-        print(followingRes['ids'])
     else:
         print ("Error: %d" % req2.status_code, location())
 
@@ -184,16 +215,27 @@ def twitter_folB():
     # レスポンスを確認
     if req.status_code == 200:
         followerRes = json.loads(req._content.decode('utf-8'))
-        # これがフォロワーのリスト
-        print(followerRes['ids'])
     else:
         print ("Error: %d" % req.status_code, location())
 
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
-    for twiId in followerRes['ids']:
-        if twiId not in followingRes['ids']:
-            followTargetArr.append(twiId)
+    if apiVer2:
+        followingUserId = []
+        for userId in followingRes["data"]:
+            followingUserId.append(userId["id"])
+
+        followerUserId = []
+        for userId in followerRes["data"]:
+            followerUserId.append(userId["id"])
+
+        for twiId in followerUserId:
+            if twiId not in followingUserId:
+                followTargetArr.append(twiId)
+    else:
+        for twiId in followerRes['ids']:
+            if twiId not in followingRes['ids']:
+                followTargetArr.append(twiId)
     
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
@@ -246,6 +288,69 @@ def oauthByTeamId(teamId=0):
     except Exception:
         print ("Error on finding Twitter account", location())
     return activeAccount
+
+"""
+引数のteamidはtwitter apiがv2対応かどうかを判断します
+（全部v2にしたほうがいいんじゃない？）
+ひとまず、v2でしかポストできないアカはv2になります
+"""
+def twApiVer2(teamId):
+    print("twApiVer2")
+
+    if type(teamId) == str:
+        teamId = int(teamId)
+
+    result = False
+    try:
+        if teamId == 100: # @LjtYdg
+            result = True
+        elif teamId == 101: # @ChiccaSalak
+            result = True
+        elif teamId == 102: # @BlogChicca
+            result = True
+        elif teamId == 103: # @Berry_chicca
+            result = True
+        else: # General Account
+            result = False
+    except Exception:
+        print ("Error on finding Twitter account", location())
+    return result
+
+"""
+引数teamIdを元に、twitterアカのIDを返却します
+V2 APIで使用します
+"""
+def twitterIdByTeamId(teamId):
+    print("twitterIdByTeamId")
+
+    if type(teamId) == str:
+        teamId = int(teamId)
+
+    result = None
+    try:
+        if teamId == 17: # SixTONES
+            result = "1411427767443283969"
+        elif teamId == 6: # Snowman
+            result = "1409169347277332481"
+        elif teamId == 16: # King & Prince
+            result = "1411429221038116866"
+        elif teamId == 18: # なにわ男子
+            result = "1418288638345965568"
+        elif teamId == 8: # Sexy Zone
+            result = "1418289988827901953"
+        elif teamId == 100: # @LjtYdg
+            result = "1478868616657645570"
+        elif teamId == 101: # @ChiccaSalak
+            result = "1329526833461661696"
+        elif teamId == 102: # @BlogChicca
+            result = "1353959290596331523"
+        elif teamId == 103: # @Berry_chicca
+            result = "1267562271036674049"
+        else: # General Account
+            result = "1409384870745313286"
+    except Exception:
+        print ("Error on finding Twitter account", location())
+    return result
 
 """
 LOG_LEVEL_FILEレベル以上のログをファイルに出力する設定
