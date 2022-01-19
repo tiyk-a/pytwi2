@@ -272,16 +272,16 @@ def oauthByTeamId(teamId=0):
             activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret)
         elif teamId == 100: # @LjtYdg
             print(100)
-            activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret)
+            activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret, client_class=CustomClient)
         elif teamId == 101: # @ChiccaSalak
             print(101)
-            activeAccount = OAuth1Session(tosi_consumer_key, tosi_consumer_secret, tosi_token, tosi_token_secret)
+            activeAccount = OAuth1Session(tosi_consumer_key, tosi_consumer_secret, tosi_token, tosi_token_secret, client_class=CustomClient)
         elif teamId == 102: # @BlogChicca
             print(102)
-            activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret)
+            activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret, client_class=CustomClient)
         elif teamId == 103: # @Berry_chicca
             print(103)
-            activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret)
+            activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret, client_class=CustomClient)
         else: # General Account
             print("General")
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
@@ -351,6 +351,11 @@ def twitterIdByTeamId(teamId):
     except Exception:
         print ("Error on finding Twitter account", location())
     return result
+
+class CustomClient(Client):
+    def _render(self, request, formencode=False, realm=None):
+        request.headers['Content-type'] = "application/json"
+        return super()._render(request, formencode, realm)
 
 """
 LOG_LEVEL_FILEレベル以上のログをファイルに出力する設定
