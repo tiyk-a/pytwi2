@@ -221,7 +221,7 @@ def oauthByTeamId(teamId=0):
             activeAccount = OAuth1Session(snowman_consumer_key, snowman_consumer_secret, snowman_token, snowman_token_secret)
         elif teamId == 16: # King & Prince
             print(16)
-            activeAccount = OAuth1Session(kinpri_token, kinpri_token_secret, kinpri_consumer_key, kinpri_consumer_secret)
+            activeAccount = OAuth1Session(kinpri_consumer_key, kinpri_consumer_secret, kinpri_token, kinpri_token_secret)
         elif teamId == 18: # なにわ男子
             print(18)
             activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret)
