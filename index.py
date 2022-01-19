@@ -51,8 +51,8 @@ def twitter_post(data=None):
             activeAccount = oauthByTeamId(teamId)
 
             # Tw API verをチェックし処理分岐
-            twApiVer2 = twApiVer2(teamId)
-            if twApiVer2:
+            apiVer2 = twApiVer2(teamId)
+            if apiVer2:
                 url = "https://api.twitter.com/2/tweets"
                 data = {"text" : msg}
                 req = activeAccount.post(url, data)
