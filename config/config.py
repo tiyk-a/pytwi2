@@ -19,10 +19,10 @@ sixtones_token = "1411427767443283969-MBBR0kluN2wuGpieJlTyWQSMlSaQFj"
 sixtones_token_secret = "iqUBAe4T6VrJTpY9BXISOAyup1qd9ajW5fx6HpxLxrepe"
 
 # King & Prince
-kinpri_consumer_key = "8xS3q8JsL8PUnTfUhNpH2nc4W"
-kinpri_consumer_secret = "8KRpUqYabSwHEAxmajDSD35ctPse2pXqqT6trShlkvyam8GEC3"
-kinpri_token = "1411429221038116866-kcLXzQ3On9C4KtOwWxumEvF2urGg8R"
-kinpri_token_secret = "ZkqmnfLt4ZWKEj268sPvuxSAkMbbw0cWGtVLXGLUBioWY"
+kinpri_consumer_key = "MW1U6fzRGMb44tjpZjaM4haZh"
+kinpri_consumer_secret = "lVWIJ3unXGOLlCP82nas8uQ3VcFomsUNfq03EnPtcI2Z7F5Jbf"
+kinpri_token = "1411429221038116866-N6grwR9uo7G6IRAXzHdQNgbHqx2pMV"
+kinpri_token_secret = "ki4EL45zvOVPCFhZCl02FXbuBIUmDhSAp9vpSjUVezBF8"
 
 # なにわ男子
 naniwa_consumer_key = "Awd0aKTYLnco4mGLckcpqZb1l"
