@@ -9,6 +9,7 @@ from config import *
 import urllib.request
 import logging
 from requests_oauthlib import OAuth1Session
+from oauthlib.oauth1 import Client
 import json
 
 def location(depth=0):
