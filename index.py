@@ -82,8 +82,8 @@ routeは用意してるが実質呼ばれることはなく、1つ下の'twitter
 def twitter_fav(twitterIdToFav, teamId):
 
     # Tw API verをチェックし処理分岐
-    twApiVer2 = twApiVer2(teamId)
-    if twApiVer2:
+    apiVer2 = twApiVer2(teamId)
+    if apiVer2:
         # ユーザーIDがわからないとfavできなくなった。対処法を考えないと
         return 555
     else:
@@ -155,8 +155,8 @@ def twitter_follow(userToFollow, teamId):
     if apiVer2:
         accountId= twitterIdByTeamId(teamId)
         url = "https://api.twitter.com/2/users/" + accountId + "/following"
-        data = {"target_user_id" : userToFollow}
-        req = activeAccount.post(url, data)
+        json_data = {"target_user_id" : userToFollow}
+        req = activeAccount.post(url, data = json.dumps(json_data))
     else:
         url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + str(userToFollow)
         req = activeAccount.post(url)
