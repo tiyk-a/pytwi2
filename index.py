@@ -55,8 +55,8 @@ def twitter_post(data=None):
             apiVer2 = twApiVer2(teamId)
             if apiVer2:
                 url = "https://api.twitter.com/2/tweets"
-                data = {"text" : msg}
-                req = activeAccount.post(url, data)
+                json_data = {"text" : msg}
+                req = activeAccount.post(url, data = json.dumps(json_data))
             else:
                 url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg
                 req = activeAccount.post(url)
