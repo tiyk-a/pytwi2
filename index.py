@@ -53,18 +53,21 @@ def twitter_post(data=None):
 
             # Tw API verをチェックし処理分岐
             apiVer2 = twApiVer2(teamId)
+            print( inspect.getmembers( activeAccount) , location())
             if apiVer2:
+                print("ver2")
                 url = "https://api.twitter.com/2/tweets"
                 json_data = {"text" : msg}
                 req = activeAccount.post(url, data = json.dumps(json_data))
+                print(json_data, location())
             else:
+                print("ver1")
                 url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg
                 req = activeAccount.post(url)
-                
+
             # レスポンスを確認
-            if req.status_code != (200 or 403):
-                print ("Error: %d" % req.status_code, location(), " ")
-                print ("vars(req) ", vars(req))
+            if req.status_code != (200 or 201 or 403):
+                print (vars(req), location())
             return req.status_code
         else:
             print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
@@ -93,7 +96,7 @@ def twitter_fav(twitterIdToFav, teamId):
     req = activeAccount.post(url)
 
     # レスポンスを確認
-    if req.status_code != (200 or 403):
+    if req.status_code != (200 or 201 or 403):
         print ("Error: %d" % req.status_code, location(), req)
     return req.status_code
 
@@ -121,7 +124,7 @@ def twitter_search():
     req = activeAccount.get(url)
 
     # レスポンスを確認
-    if req.status_code == 200:
+    if req.status_code == 200 or 201:
         resJson = json.loads(req._content.decode('utf-8'))
         
         for item in resJson["statuses"]:
@@ -164,7 +167,7 @@ def twitter_follow(userToFollow, teamId):
     resCode = None
 
     # レスポンスを確認
-    if req.status_code == 200:
+    if req.status_code == 200 or 201:
         print ("OK: ", userToFollow)
         resCode = req.status_code
     elif req.status_code == 403:
@@ -205,7 +208,7 @@ def twitter_folB():
     req2 = activeAccount.get(url_follows)
 
     # レスポンスを確認
-    if req2.status_code == 200:
+    if req2.status_code == 200 or 201:
         followingRes = json.loads(req2._content.decode('utf-8'))
     else:
         print ("Error: %d" % req2.status_code, location())
@@ -214,7 +217,7 @@ def twitter_folB():
     # フォロワーを検索します
     req = activeAccount.get(url_followers)
     # レスポンスを確認
-    if req.status_code == 200:
+    if req.status_code == 200 or 201:
         followerRes = json.loads(req._content.decode('utf-8'))
     else:
         print ("Error: %d" % req.status_code, location())
