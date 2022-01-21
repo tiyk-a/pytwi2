@@ -52,18 +52,18 @@ def twitter_post(data=None):
             activeAccount = oauthByTeamId(teamId)
 
             # Tw API verをチェックし処理分岐
-            apiVer2 = twApiVer2(teamId)
-            print( inspect.getmembers( activeAccount) , location())
-            if apiVer2:
-                print("ver2")
-                url = "https://api.twitter.com/2/tweets"
-                json_data = {"text" : msg}
-                req = activeAccount.post(url, data = json.dumps(json_data))
-                print(json_data, location())
-            else:
-                print("ver1")
-                url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg
-                req = activeAccount.post(url)
+            # apiVer2 = twApiVer2(teamId)
+            # print( inspect.getmembers( activeAccount) , location())
+            # if apiVer2:
+            print("一律ver2")
+            url = "https://api.twitter.com/2/tweets"
+            json_data = {"text" : msg}
+            req = activeAccount.post(url, data = json.dumps(json_data))
+            print(json_data, location())
+            # else:
+            #     print("ver1")
+            #     url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg
+            #     req = activeAccount.post(url)
 
             # レスポンスを確認
             if req.status_code != (200 or 201 or 403):
