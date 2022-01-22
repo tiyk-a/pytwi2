@@ -18,6 +18,8 @@ def location(depth=0):
 
 @route("/")
 def hello_world():
+    print("*** hello_world() START ***")
+    print("*** hello_world() END ***")
     return 'Hello', 200
 
 LOG_LEVEL_FILE = 'DEBUG'
@@ -28,6 +30,7 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 
 @route('/twi', method='POST')
 def twitter_post(data=None):
+    print("*** twitter_post() START ***")
 
     teamId = request.query.get('teamId')
 
@@ -73,6 +76,7 @@ def twitter_post(data=None):
             print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
     except Exception as e:
         print(sys.exc_info(), location())
+    print("*** twitter_post() END ***")
     return None
 
 '''
@@ -83,6 +87,7 @@ routeは用意してるが実質呼ばれることはなく、1つ下の'twitter
 '''
 @route('/twFav?id=:twitterIdToFav&teamId=:teamId', method='GET')
 def twitter_fav(twitterIdToFav, teamId):
+    print("*** twitter_fav() START ***")
 
     # Tw API verをチェックし処理分岐
     apiVer2 = twApiVer2(teamId)
@@ -98,6 +103,7 @@ def twitter_fav(twitterIdToFav, teamId):
     # レスポンスを確認
     if req.status_code != (200 or 201 or 403):
         print ("Error: %d" % req.status_code, location(), req)
+    print("*** twitter_fav() END ***")
     return req.status_code
 
 """
@@ -109,6 +115,7 @@ https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%9
 """
 @route('/twSearch', method='GET')
 def twitter_search():
+    print("*** twitter_search() START ***")
     word = request.query.get('q')
     teamId = request.query.get('teamId')
     count = 0
@@ -140,6 +147,7 @@ def twitter_search():
     else:
         print ("Error: %d" % req.status_code, location(), " ", str(req))
     
+    print("*** twitter_search() END ***")
     return 200
 
 '''
@@ -150,6 +158,7 @@ routeはあるが実質'twitter_folB'からinternalで呼ばれます
 '''
 @route('/twFol?id=:userToFollow&teamId=:teamId', method='GET')
 def twitter_follow(userToFollow, teamId):
+    print("*** twitter_follow() START ***")
 
     activeAccount = oauthByTeamId(teamId)
 
@@ -168,17 +177,22 @@ def twitter_follow(userToFollow, teamId):
 
     # レスポンスを確認
     if req.status_code == 200 or 201:
-        print ("OK: ", userToFollow)
+        print ("フォロバ成功: ", userToFollow)
         resCode = req.status_code
     elif req.status_code == 403:
         res = json.loads(req._content.decode('utf-8'))
         errCode = res["errors"][0]["code"]
         if errCode == 160:
-            print("Request sent", userToFollow)
+            print("フォロリクsent: ", userToFollow)
             resCode = 200
     else:
-        print ("Error: %d" % req.status_code, userToFollow, location())
+        print ("フォロバError: %d" % req.status_code, userToFollow, location())
+        try:
+            print(vars(req))
+        except Exception as e:
+            print(e.args)
         resCode = req.status_code
+    print("*** twitter_follow() END ***")
     return resCode
 
 '''
@@ -189,6 +203,7 @@ Javaから呼んでます
 '''
 @route('/twFolB', method='GET')
 def twitter_folB():
+    print("*** twitter_folB() START ***")
 
     teamId = request.query.get('teamId')
 
@@ -211,7 +226,7 @@ def twitter_folB():
     if req2.status_code == 200 or 201:
         followingRes = json.loads(req2._content.decode('utf-8'))
     else:
-        print ("Error: %d" % req2.status_code, location())
+        print ("フォローしてる人 get error: %d" % req2.status_code, location())
 
 
     # フォロワーを検索します
@@ -220,7 +235,7 @@ def twitter_folB():
     if req.status_code == 200 or 201:
         followerRes = json.loads(req._content.decode('utf-8'))
     else:
-        print ("Error: %d" % req.status_code, location())
+        print ("フォロワー get error: %d" % req.status_code, location())
 
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
@@ -244,6 +259,7 @@ def twitter_folB():
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
             status = twitter_follow(targetId, teamId)
+    print("*** twitter_folB() END ***")
     return 200
 
 """
@@ -251,7 +267,7 @@ teamIdを渡せばOAuthオブジェクトを返却します
 ジャニ以外のTwitterアカも対応
 """
 def oauthByTeamId(teamId=0):
-    print("oauthByTeamId")
+    print("*** oauthByTeamId() START ***")
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -291,6 +307,7 @@ def oauthByTeamId(teamId=0):
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
     except Exception:
         print ("Error on finding Twitter account", location())
+    print("*** oauthByTeamId() END ***")
     return activeAccount
 
 """
@@ -299,7 +316,7 @@ def oauthByTeamId(teamId=0):
 ひとまず、v2でしかポストできないアカはv2になります
 """
 def twApiVer2(teamId):
-    print("twApiVer2")
+    print("*** twApiVer2() START ***")
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -318,6 +335,7 @@ def twApiVer2(teamId):
             result = False
     except Exception:
         print ("Error on finding Twitter account", location())
+    print("*** twApiVer2() END ***")
     return result
 
 """
@@ -325,7 +343,7 @@ def twApiVer2(teamId):
 V2 APIで使用します
 """
 def twitterIdByTeamId(teamId):
-    print("twitterIdByTeamId")
+    print("*** twitterIdByTeamId() START ***")
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -354,11 +372,14 @@ def twitterIdByTeamId(teamId):
             result = "1409384870745313286"
     except Exception:
         print ("Error on finding Twitter account", location())
+    print("*** twitterIdByTeamId() END ***")
     return result
 
 class CustomClient(Client):
     def _render(self, request, formencode=False, realm=None):
+        print("*** CustomClient._render() START ***")
         request.headers['Content-type'] = "application/json"
+        print("*** CustomClient._render() END ***")
         return super()._render(request, formencode, realm)
 
 """
