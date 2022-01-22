@@ -261,19 +261,19 @@ def oauthByTeamId(teamId=0):
     try:
         if teamId == 17: # SixTONES
             print(17)
-            activeAccount = OAuth1Session(sixtones_consumer_key, sixtones_consumer_secret, sixtones_token, sixtones_token_secret)
+            activeAccount = OAuth1Session(sixtones_consumer_key, sixtones_consumer_secret, sixtones_token, sixtones_token_secret, client_class=CustomClient)
         elif teamId == 6: # Snowman
             print(6)
-            activeAccount = OAuth1Session(snowman_consumer_key, snowman_consumer_secret, snowman_token, snowman_token_secret)
+            activeAccount = OAuth1Session(snowman_consumer_key, snowman_consumer_secret, snowman_token, snowman_token_secret, client_class=CustomClient)
         elif teamId == 16: # King & Prince
             print(16)
-            activeAccount = OAuth1Session(kinpri_consumer_key, kinpri_consumer_secret, kinpri_token, kinpri_token_secret)
+            activeAccount = OAuth1Session(kinpri_consumer_key, kinpri_consumer_secret, kinpri_token, kinpri_token_secret, client_class=CustomClient)
         elif teamId == 18: # なにわ男子
             print(18)
-            activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret)
+            activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret, client_class=CustomClient)
         elif teamId == 8: # Sexy Zone
             print(8)
-            activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret)
+            activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret, client_class=CustomClient)
         elif teamId == 100: # @LjtYdg
             print(100)
             activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret, client_class=CustomClient)
@@ -288,7 +288,7 @@ def oauthByTeamId(teamId=0):
             activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret, client_class=CustomClient)
         else: # General Account
             print("General")
-            activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret)
+            activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
     except Exception:
         print ("Error on finding Twitter account", location())
     return activeAccount
