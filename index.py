@@ -2,6 +2,7 @@
 import os, urllib.parse
 from bottle import run, route, request
 from bottle import request
+from bottle import HTTPResponse
 import inspect
 
 from config import *
@@ -20,7 +21,8 @@ def location(depth=0):
 def hello_world():
     print("*** hello_world() START ***")
     print("*** hello_world() END ***")
-    return 'Hello', 200
+    response = setResponse(200, "*** hello_world() END ***")
+    return response
 
 LOG_LEVEL_FILE = 'DEBUG'
 LOG_LEVEL_CONSOLE = 'INFO'
@@ -28,6 +30,9 @@ LOG_LEVEL_CONSOLE = 'INFO'
 # フォーマットを指定 (https://docs.python.jp/3/library/logging.html#logrecord-attributes)
 _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lineno)d] %(message)s'
 
+"""
+Twitterポストします
+"""
 @route('/twi', method='POST')
 def twitter_post(data=None):
     print("*** twitter_post() START ***")
@@ -71,13 +76,15 @@ def twitter_post(data=None):
             # レスポンスを確認
             if req.status_code != (200 or 201 or 403):
                 print (vars(req), location())
-            return req.status_code
+            response = setResponse(req.status_code, "*** twitter_post() ERROR ***")
+            return response
         else:
             print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
     except Exception as e:
         print(sys.exc_info(), location())
     print("*** twitter_post() END ***")
-    return None
+    response = setResponse(req.status_code, "*** twitter_post() END ***")
+    return response
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -123,7 +130,8 @@ def twitter_search():
     # Tw API verをチェックし処理分岐
     apiVer2 = twApiVer2(teamId)
     if apiVer2:
-        return 556
+        response = setResponse(200, "*** twitter_search() v2未開通 ***")
+        return response
     else:
         url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
 
@@ -141,14 +149,16 @@ def twitter_search():
                 count = count + 1
             elif status == (429 or 403):
                 print("Error: " + status + ". Break transaction.")
-                return
+                response = setResponse(200, "*** twitter_search() END ***")
+                return response
             if count >= 30:
                 break
     else:
         print ("Error: %d" % req.status_code, location(), " ", str(req))
     
     print("*** twitter_search() END ***")
-    return 200
+    response = setResponse(req.status_code, "*** twitter_search() END ***")
+    return response
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -260,7 +270,8 @@ def twitter_folB():
         for targetId in followTargetArr:
             status = twitter_follow(targetId, teamId)
     print("*** twitter_folB() END ***")
-    return 200
+    response = setResponse(req.status_code, "*** twitter_folB() END ***")
+    return response
 
 """
 teamIdを渡せばOAuthオブジェクトを返却します
@@ -374,6 +385,15 @@ def twitterIdByTeamId(teamId):
         print ("Error on finding Twitter account", location())
     print("*** twitterIdByTeamId() END ***")
     return result
+
+"""
+httpResponseを作成します
+"""
+def setResponse(status=200, message=''):
+    body = json.dumps({'status': status, 'message': message})
+    response = HTTPResponse(status = status, body = body)
+    response.set_header('Content-Type', 'application/json')
+    return response
 
 class CustomClient(Client):
     def _render(self, request, formencode=False, realm=None):
