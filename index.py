@@ -59,19 +59,11 @@ def twitter_post(data=None):
 
             activeAccount = oauthByTeamId(teamId)
 
-            # Tw API verをチェックし処理分岐
-            # apiVer2 = twApiVer2(teamId)
-            # print( inspect.getmembers( activeAccount) , location())
-            # if apiVer2:
             print("一律ver2")
             url = "https://api.twitter.com/2/tweets"
             json_data = {"text" : msg}
             req = activeAccount.post(url, data = json.dumps(json_data))
             print(json_data, location())
-            # else:
-            #     print("ver1")
-            #     url = "https://api.twitter.com/1.1/statuses/update.json?status=" + msg
-            #     req = activeAccount.post(url)
 
             # レスポンスを確認
             if req.status_code != (200 or 201 or 403):
@@ -118,13 +110,16 @@ def twitter_fav(twitterIdToFav, teamId):
 →ファボに使う
 [DEF]30件ファボしたら終わる
 Javaから呼んでます
+API V1.1しかできない。v2はfavしたいユーザーIDが必要
 https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%96%E3%81%A3%E3%81%9F%E3%83%91%E3%83%A9%E3%83%A1%E3%83%BC%E3%82%BF%E3%82%92%E5%88%A9%E7%94%A8%E3%81%99%E3%82%8B
 """
 @route('/twSearch', method='GET')
 def twitter_search():
-    print("*** twitter_search() START ***")
     word = request.query.get('q')
     teamId = request.query.get('teamId')
+
+    print("*** twitter_search() START ", "word=", word, " teamId=", teamId, " ***")
+
     count = 0
 
     # Tw API verをチェックし処理分岐
@@ -154,11 +149,13 @@ def twitter_search():
                     return response
                 if count >= 30:
                     break
+        else:
+            print("検索結果が0件でした", "word=", word, " teamId=", teamId)
     else:
         print ("Error: %d" % req.status_code, location(), " ", str(req))
     
     print("*** twitter_search() END ***")
-    response = setResponse(req.status_code, "*** twitter_search() END ***")
+    response = setResponse(req.status_code, "*** twitter_search() END ***", str(req))
     return response
 
 '''
@@ -197,7 +194,7 @@ def twitter_follow(userToFollow, teamId):
             print("フォロリクsent: ", userToFollow)
             resCode = 200
     else:
-        print ("フォロバError: %d" % req.status_code, userToFollow, location())
+        print ("フォロバError: %d" % req.status_code, userToFollow, location(), str(req))
         try:
             print(vars(req))
         except Exception as e:
@@ -237,7 +234,7 @@ def twitter_folB():
     if req2.status_code == 200 or 201:
         followingRes = json.loads(req2._content.decode('utf-8'))
     else:
-        print ("フォローしてる人 get error: %d" % req2.status_code, location())
+        print ("フォローしてる人 get error: %d" % req2.status_code, location(), str(req))
 
 
     # フォロワーを検索します
@@ -246,7 +243,7 @@ def twitter_folB():
     if req.status_code == 200 or 201:
         followerRes = json.loads(req._content.decode('utf-8'))
     else:
-        print ("フォロワー get error: %d" % req.status_code, location())
+        print ("フォロワー get error: %d" % req.status_code, location(), str(req))
 
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
@@ -319,7 +316,7 @@ def oauthByTeamId(teamId=0):
             print(103)
             activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret, client_class=CustomClient)
         else: # General Account
-            print("General")
+            print("General", teamId)
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
     except Exception:
         print ("Error on finding Twitter account", location())
