@@ -142,17 +142,18 @@ def twitter_search():
     if req.status_code == 200 or 201:
         resJson = json.loads(req._content.decode('utf-8'))
         
-        for item in resJson["statuses"]:
-            status = twitter_fav(item["id_str"], teamId)
-            if status == 200:
-                print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
-                count = count + 1
-            elif status == (429 or 403):
-                print("Error: " + status + ". Break transaction.")
-                response = setResponse(200, "*** twitter_search() END ***")
-                return response
-            if count >= 30:
-                break
+        if resJson["statuses"]:
+            for item in resJson["statuses"]:
+                status = twitter_fav(item["id_str"], teamId)
+                if status == 200:
+                    print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
+                    count = count + 1
+                elif status == (429 or 403):
+                    print("Error: " + status + ". Break transaction.")
+                    response = setResponse(200, "*** twitter_search() END ***")
+                    return response
+                if count >= 30:
+                    break
     else:
         print ("Error: %d" % req.status_code, location(), " ", str(req))
     
@@ -251,20 +252,24 @@ def twitter_folB():
     followTargetArr = []
     if apiVer2:
         followingUserId = []
-        for userId in followingRes["data"]:
-            followingUserId.append(userId["id"])
+        if followingRes["data"]:
+            for userId in followingRes["data"]:
+                followingUserId.append(userId["id"])
 
         followerUserId = []
-        for userId in followerRes["data"]:
-            followerUserId.append(userId["id"])
+        if followerRes["data"]:
+            for userId in followerRes["data"]:
+                followerUserId.append(userId["id"])
 
-        for twiId in followerUserId:
-            if twiId not in followingUserId:
-                followTargetArr.append(twiId)
+        if followerUserId:
+            for twiId in followerUserId:
+                if twiId not in followingUserId:
+                    followTargetArr.append(twiId)
     else:
-        for twiId in followerRes['ids']:
-            if twiId not in followingRes['ids']:
-                followTargetArr.append(twiId)
+        if followerRes['ids']:
+            for twiId in followerRes['ids']:
+                if twiId not in followingRes['ids']:
+                    followTargetArr.append(twiId)
     
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
