@@ -90,18 +90,26 @@ def twitter_fav(twitterIdToFav, teamId):
 
     # Tw API verをチェックし処理分岐
     apiVer2 = twApiVer2(teamId)
+
+    # API V1.1 / V2でOAuth objectは同じでOK
+    activeAccount = oauthByTeamId(teamId)
+
     if apiVer2:
-        # ユーザーIDがわからないとfavできなくなった。対処法を考えないと
-        return 555
+        # 自分のIDを取得する
+        accountId = twitterIdByTeamId(teamId)
+
+        url = "https://api.twitter.com/2/users/" + accountId + "/likes"
+        data = {"tweet_id": twitterIdToFav}
+        req = activeAccount.post(url, data = json.dumps(data))
     else:
         url = "https://api.twitter.com/1.1/favorites/create.json?id=" + twitterIdToFav
-    
-    activeAccount = oauthByTeamId(teamId)
-    req = activeAccount.post(url)
+        req = activeAccount.post(url)
 
     # レスポンスを確認
     if req.status_code != (200 or 201 or 403):
-        print ("Error: %d" % req.status_code, location(), req)
+        print ("Fav Error: %d" % req.status_code, location(), vars(req))
+    else:
+        print("Fav Success:", location())
     print("*** twitter_fav() END ***")
     return req.status_code
 
@@ -274,6 +282,97 @@ def twitter_folB():
     print("*** twitter_folB() END ***")
     response = setResponse(req.status_code, "*** twitter_folB() END ***")
     return response
+
+"""
+私のツイートをファボ/リツイ/リプしてくれた人の最新の投稿（ランダムx件）にいいねをつけに行きます
+メソッドは作ったけどまだ使用なし
+改善の余地あり（エラーチェック、意外と該当Tweetが取得できなかった時にまた上に戻るとか）
+"""
+@route('/engage', method='GET')
+def engageWithReactors(argAsTeamId=0):
+    teamId = request.query.get('teamId')
+    if not teamId:
+        teamId = argAsTeamId
+
+    #自アカウントの投稿を集めます
+    accountId = twitterIdByTeamId(teamId)
+    fstPageFlg = True
+    nextPageToken = ""
+    checkTweet = []
+    continueFlg = True
+
+    activeAccount = oauthByTeamId(teamId)
+
+    while continueFlg:
+        if fstPageFlg:
+            url = "https://api.twitter.com/2/users/" + accountId + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=30"
+        else:
+            url = "https://api.twitter.com/2/users/" + accountId + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=30&pagination_token=" + nextPageToken
+
+        req = activeAccount.get(url)
+
+        resJson = json.loads(req._content.decode('utf-8'))
+        dataArr = resJson['data']
+
+        # リアクションのあるツイートIDを集めます
+        if dataArr:
+            for data in dataArr:
+                print(data, location())
+                if data['public_metrics']['retweet_count'] > 0 or data['public_metrics']['reply_count'] > 0 or data['public_metrics']['like_count'] > 0 or data['public_metrics']['quote_count'] > 0:
+                    if data['id'] not in checkTweet:
+                        checkTweet.append(data['id'])
+                        print("****************APPEND", len(checkTweet))
+
+            if resJson['meta'] and resJson['meta']['next_token'] and len(checkTweet) < 10:
+                nextPageToken = resJson['meta']['next_token']
+            else:
+                nextPageToken = ""
+                continueFlg = False
+        if len(checkTweet) > 10:
+            continueFlg = False
+
+    # リアクションのあるツイートがあったら、それぞれのツイートをlikeしてる人を確認します
+    if checkTweet:
+        print(checkTweet, location())
+        liking_users = []
+        for tweet in checkTweet:
+            url2 = "https://api.twitter.com/2/tweets/" + tweet + "/liking_users?user.fields=entities,id,location,name,pinned_tweet_id,protected,public_metrics,url,username,verified,withheld"
+            req2 = activeAccount.get(url2)
+            resJson2 = json.loads(req2._content.decode('utf-8'))
+            dataArr2 = resJson2['data']
+            if dataArr2:
+                print(dataArr2, location())
+                for data2 in dataArr2:
+                    if data2["id"] not in liking_users:
+                        liking_users.append(data2["id"])
+        
+        # likeしているユーザーIDを取得したらそのユーザーの投稿をlikeしに行く
+        if liking_users:
+            print(liking_users, location())
+            for user in liking_users:
+                # そのユーザーの投稿を5件取得
+                url3 = "https://api.twitter.com/2/users/" + user + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=5"
+                req3 = activeAccount.get(url3)
+                resJson3 = json.loads(req3._content.decode('utf-8'))
+                print(resJson3, location())
+                if 'data' in resJson3.keys():
+                    dataArr3 = resJson3['data']
+                    if dataArr3:
+                        count = 0
+                        for data3 in dataArr3:
+                            # 2件likeを試みる
+                            if count < 3:
+                                url4 = "https://api.twitter.com/2/users/" + accountId + "/likes"
+                                data4 = {"tweet_id": data3["id"]}
+                                req4 = activeAccount.post(url4, data = json.dumps(data4))
+                                print("likeしました:", data3["id"], vars(req4))
+                                count = count + 1
+                            else:
+                                break
+                else:
+                    print(resJson3, location())
+
+    return "OK"
 
 """
 teamIdを渡せばOAuthオブジェクトを返却します
