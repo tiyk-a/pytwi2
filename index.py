@@ -291,6 +291,8 @@ def twitter_folB():
 @route('/engage', method='GET')
 def engageWithReactors(argAsTeamId=0):
     teamId = request.query.get('teamId')
+
+    # 外部からでなく内部からでも呼べるようにとArg1からTeamIdを取得する処理も入ってる
     if not teamId:
         teamId = argAsTeamId
 
@@ -312,49 +314,54 @@ def engageWithReactors(argAsTeamId=0):
         req = activeAccount.get(url)
 
         resJson = json.loads(req._content.decode('utf-8'))
-        dataArr = resJson['data']
+        if 'data' in resJson.keys():
+            dataArr = resJson['data']
 
         # リアクションのあるツイートIDを集めます
         if dataArr:
             for data in dataArr:
-                print(data, location())
                 if data['public_metrics']['retweet_count'] > 0 or data['public_metrics']['reply_count'] > 0 or data['public_metrics']['like_count'] > 0 or data['public_metrics']['quote_count'] > 0:
                     if data['id'] not in checkTweet:
                         checkTweet.append(data['id'])
-                        print("****************APPEND", len(checkTweet))
+                        print("****************checkTweet APPEND", len(checkTweet), location())
 
-            if resJson['meta'] and resJson['meta']['next_token'] and len(checkTweet) < 10:
-                nextPageToken = resJson['meta']['next_token']
+            # 次のページがあるようであればcontinue,ないならend
+            if 'next_token' in resJson.keys():
+                if resJson['meta'] and resJson['meta']['next_token'] and len(checkTweet) < 10:
+                    nextPageToken = resJson['meta']['next_token']
             else:
                 nextPageToken = ""
                 continueFlg = False
+
+        # 取得Tweetが10件あればend
         if len(checkTweet) > 10:
             continueFlg = False
 
     # リアクションのあるツイートがあったら、それぞれのツイートをlikeしてる人を確認します
     if checkTweet:
-        print(checkTweet, location())
+        print("checkTweetの中身:", checkTweet, location())
         liking_users = []
         for tweet in checkTweet:
+            # Likeしてる人のリストを取得
             url2 = "https://api.twitter.com/2/tweets/" + tweet + "/liking_users?user.fields=entities,id,location,name,pinned_tweet_id,protected,public_metrics,url,username,verified,withheld"
             req2 = activeAccount.get(url2)
             resJson2 = json.loads(req2._content.decode('utf-8'))
-            dataArr2 = resJson2['data']
-            if dataArr2:
-                print(dataArr2, location())
-                for data2 in dataArr2:
-                    if data2["id"] not in liking_users:
-                        liking_users.append(data2["id"])
+
+            if 'data' in resJson2.keys():
+                dataArr2 = resJson2['data']
+                if dataArr2:
+                    for data2 in dataArr2:
+                        if data2["id"] not in liking_users:
+                            liking_users.append(data2["id"])
         
         # likeしているユーザーIDを取得したらそのユーザーの投稿をlikeしに行く
         if liking_users:
-            print(liking_users, location())
+            print("liking_users:", liking_users, location())
             for user in liking_users:
                 # そのユーザーの投稿を5件取得
                 url3 = "https://api.twitter.com/2/users/" + user + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=5"
                 req3 = activeAccount.get(url3)
                 resJson3 = json.loads(req3._content.decode('utf-8'))
-                print(resJson3, location())
                 if 'data' in resJson3.keys():
                     dataArr3 = resJson3['data']
                     if dataArr3:
