@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, urllib.parse
-from bottle import run, route, request
-from bottle import request
-from bottle import HTTPResponse
+from bottle import run, route, request, HTTPResponse
 import inspect
 
 from config import *
@@ -62,11 +60,6 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 ## 引数エラーチェックなしのため呼び出す側で問題ない時だけ呼び出して
 ## POST: returns response
 ## GET: returns json
-"""
-Post tweet v1.1
-"""
-# もう使わないのでnot implemented
-
 """
 (POST) Post tweet API v2
 """
