@@ -125,6 +125,7 @@ def like_v2(teamId=0, tweetId=""):
 
 """
 (GET) Search Tweets v2
+returns JSON
 """
 def search_v2(teamId=0, word=''):
     print("*** search_v2() START ***")
@@ -137,6 +138,117 @@ def search_v2(teamId=0, word=''):
     except Exception as e:
         print(sys.exc_info(), e, location())
     print("*** search_v2() END ***")
+    return resData
+
+"""
+(POST) Follow User v2
+"""
+def follow_user(teamId=0, userToFollow=''):
+    print("*** follow_user() START ***")
+
+    accountId = twitterIdByTeamId(teamId)
+    activeAccount = oauthByTeamId(teamId)
+
+    url = "https://api.twitter.com/2/users/" + accountId + "/following"
+    json_data = {"target_user_id" : userToFollow}
+
+    try:
+        req = activeAccount.post(url, data = json.dumps(json_data))
+
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+        if resData:
+            resMsg = "Success: " + tuple_str(location())
+        else:
+            resMsg = "Error: " + tuple_str(location())
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** follow_user() END ***")
+    response = setResponse(req.status_code, resMsg)
+    return response
+
+"""
+(GET) フォローしているユーザー一覧を取得します
+ページング未対応
+"""
+def following_user(teamId=0):
+    print("*** following_user() START ***")
+    accountId = twitterIdByTeamId(teamId)
+    url = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
+    activeAccount = oauthByTeamId(teamId)
+    try:
+        req = activeAccount.get(url)
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** following_user() END ***")
+    return resData
+
+"""
+(GET) フォロワー一覧を取得します
+ページング未対応
+"""
+def followers(teamId=0):
+    print("*** followers() START ***")
+    accountId = twitterIdByTeamId(teamId)
+    url = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
+    activeAccount = oauthByTeamId(teamId)
+    try:
+        req = activeAccount.get(url)
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** followers() END ***")
+    return resData
+
+"""
+(GET) ツイートを取得します
+デフォルトで30件取得
+teamId=ツイートを取得するOAuthアカウント
+targetAccountId=ツイートを取得したいアカウント
+"""
+def tweets(teamId=0, targetAccountId=None, nextPageToken=None, max_results=30):
+    print("*** tweets() START ***")
+
+    # ツイートを取得するアカウントがOAuthアカウントと違う場合はarg2から取得する
+    if targetAccountId:
+        accountId = targetAccountId
+    else:
+        accountId = twitterIdByTeamId(teamId)
+
+    url = ''
+    if nextPageToken and nextPageToken != '':
+        url = "https://api.twitter.com/2/users/" + accountId + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=" + max_results + "&pagination_token=" + nextPageToken
+    else:
+        url = "https://api.twitter.com/2/users/" + accountId + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=" + max_results
+    activeAccount = oauthByTeamId(teamId)
+
+    try:
+        req = activeAccount.get(url)
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** tweets() END ***")
+    return resData
+
+"""
+(GET) そのツイートをlikeしているユーザーを取得します
+"""
+def liking_users_data(teamId=0, tweetId=''):
+    print("*** liking_users_data() START ***")
+    activeAccount = oauthByTeamId(teamId)
+    url = "https://api.twitter.com/2/tweets/" + tweetId + "/liking_users?user.fields=entities,id,location,name,pinned_tweet_id,protected,public_metrics,url,username,verified,withheld"
+
+    try:
+        req = activeAccount.get(url)
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** liking_users_data() END ***")
     return resData
 
 """
@@ -224,48 +336,12 @@ def twitter_search():
         resMsg = "エラーです"
         status = 500
 
+    if resMsg == '':
+        resMsg = "どこにも引っ掛からなかった" + tuple_str(location())
+        status = 200
     response = setResponse(status, resMsg)
     print("*** twitter_search() END ***")
     return response
-
-'''
-https://qiita.com/yubais/items/dd143fe608ccad8e9f85
-引数1(userToFollow)のユーザーをフォロバします
-実行ユーザーは引数2(teamId)
-routeはあるが実質'twitter_folB'からinternalで呼ばれます
-'''
-@route('/twFol?id=:userToFollow&teamId=:teamId', method='GET')
-def twitter_follow(userToFollow, teamId):
-    print("*** twitter_follow() START ***")
-
-    activeAccount = oauthByTeamId(teamId)
-
-    accountId= twitterIdByTeamId(teamId)
-    url = "https://api.twitter.com/2/users/" + accountId + "/following"
-    json_data = {"target_user_id" : userToFollow}
-    req = activeAccount.post(url, data = json.dumps(json_data))
-    
-    resCode = None
-
-    # レスポンスを確認
-    if req.status_code == 200 or 201:
-        print ("フォロバ成功: ", userToFollow)
-        resCode = req.status_code
-    elif req.status_code == 403:
-        res = content_by_req(req)
-        errCode = res["errors"][0]["code"]
-        if errCode == 160:
-            print("フォロリクsent: ", userToFollow)
-            resCode = 200
-    else:
-        print ("フォロバError: %d" % req.status_code, userToFollow, location(), str(req))
-        try:
-            print(vars(req))
-        except Exception as e:
-            print(e.args)
-        resCode = req.status_code
-    print("*** twitter_follow() END ***")
-    return resCode
 
 '''
 https://qiita.com/yubais/items/dd143fe608ccad8e9f85
@@ -276,55 +352,58 @@ Javaから呼んでます
 @route('/twFolB', method='GET')
 def twitter_folB():
     print("*** twitter_folB() START ***")
+    resMsg = ''
+    status = ''
 
     teamId = request.query.get('teamId')
 
-    accountId= twitterIdByTeamId(teamId)
-    url_followers = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
-    url_follows = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
-
-    activeAccount = oauthByTeamId(teamId)
-
     # フォローしてる人を確認します
-    req2 = activeAccount.get(url_follows)
-
-    # レスポンスを確認
-    if req2.status_code == 200 or 201:
-        followingRes = content_by_req(req2)
-    else:
-        print ("フォローしてる人 get error: %d" % req2.status_code, location(), str(req2))
-
+    followingRes = following_user(teamId)
 
     # フォロワーを検索します
-    req = activeAccount.get(url_followers)
-    # レスポンスを確認
-    if req.status_code == 200 or 201:
-        followerRes = content_by_req(req)
-    else:
-        print ("フォロワー get error: %d" % req.status_code, location(), str(req))
+    followerRes = followers(teamId)
 
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
     followingUserId = []
-    if followingRes["data"]:
+    if 'data' in followingRes.keys():
         for userId in followingRes["data"]:
             followingUserId.append(userId["id"])
+    else:
+        resMsg = 'フォローしている人の取得に失敗'
+        status = 500
 
     followerUserId = []
-    if followerRes["data"]:
+    if 'data' in followerRes.keys():
         for userId in followerRes["data"]:
             followerUserId.append(userId["id"])
+    else:
+        resMsg = 'フォロワーの取得に失敗'
+        status = 500
 
     if followerUserId:
         for twiId in followerUserId:
             if twiId not in followingUserId:
                 followTargetArr.append(twiId)
+    else:
+        resMsg = 'フォロワーがいないので処理中断で正常終了'
+        status = 200
     
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
-            status = twitter_follow(targetId, teamId)
+            follow_res = follow_user(teamId, targetId)
+            if follow_res.status_code != 200:
+                resMsg = 'フォローにエラーあり'
+                status = follow_res.status_code
+    else:
+        resMsg = '新規フォロー不要なため正常終了'
+        status = 200
+
+    if resMsg == '':
+        resMsg = 'エラー検知なし'
+        status = '200'
+    response = setResponse(status, resMsg)
     print("*** twitter_folB() END ***")
-    response = setResponse(req.status_code, "*** twitter_folB() END ***")
     return response
 
 """
@@ -341,23 +420,12 @@ def engageWithReactors(argAsTeamId=0):
         teamId = argAsTeamId
 
     #自アカウントの投稿を集めます
-    accountId = twitterIdByTeamId(teamId)
-    fstPageFlg = True
     nextPageToken = ""
     checkTweet = []
     continueFlg = True
 
-    activeAccount = oauthByTeamId(teamId)
-
     while continueFlg:
-        if fstPageFlg:
-            url = "https://api.twitter.com/2/users/" + accountId + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=30"
-        else:
-            url = "https://api.twitter.com/2/users/" + accountId + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=30&pagination_token=" + nextPageToken
-
-        req = activeAccount.get(url)
-
-        resJson = content_by_req(req)
+        resJson = tweets(teamId, None, nextPageToken, 30)
         if 'data' in resJson.keys():
             dataArr = resJson['data']
 
@@ -367,7 +435,6 @@ def engageWithReactors(argAsTeamId=0):
                 if data['public_metrics']['retweet_count'] > 0 or data['public_metrics']['reply_count'] > 0 or data['public_metrics']['like_count'] > 0 or data['public_metrics']['quote_count'] > 0:
                     if data['id'] not in checkTweet:
                         checkTweet.append(data['id'])
-                        print("****************checkTweet APPEND", len(checkTweet), location())
 
             # 次のページがあるようであればcontinue,ないならend
             if 'next_token' in resJson.keys():
@@ -386,10 +453,7 @@ def engageWithReactors(argAsTeamId=0):
         print("checkTweetの中身:", checkTweet, location())
         liking_users = []
         for tweet in checkTweet:
-            # Likeしてる人のリストを取得
-            url2 = "https://api.twitter.com/2/tweets/" + tweet + "/liking_users?user.fields=entities,id,location,name,pinned_tweet_id,protected,public_metrics,url,username,verified,withheld"
-            req2 = activeAccount.get(url2)
-            resJson2 = content_by_req(req2)
+            resJson2 = liking_users_data(teamId, tweet)
 
             if 'data' in resJson2.keys():
                 dataArr2 = resJson2['data']
@@ -403,9 +467,7 @@ def engageWithReactors(argAsTeamId=0):
             print("liking_users:", liking_users, location())
             for user in liking_users:
                 # そのユーザーの投稿を5件取得
-                url3 = "https://api.twitter.com/2/users/" + user + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=5"
-                req3 = activeAccount.get(url3)
-                resJson3 = content_by_req(req3)
+                resJson3 = tweets(teamId, user, nextPageToken, 5)
                 if 'data' in resJson3.keys():
                     dataArr3 = resJson3['data']
                     if dataArr3:
@@ -413,9 +475,7 @@ def engageWithReactors(argAsTeamId=0):
                         for data3 in dataArr3:
                             # 2件likeを試みる
                             if count < 3:
-                                url4 = "https://api.twitter.com/2/users/" + accountId + "/likes"
-                                data4 = {"tweet_id": data3["id"]}
-                                req4 = activeAccount.post(url4, data = json.dumps(data4))
+                                req4 = like_v2(teamId, data3["id"])
                                 print("likeしました:", data3["id"], vars(req4))
                                 count = count + 1
                             else:
