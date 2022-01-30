@@ -30,6 +30,72 @@ LOG_LEVEL_CONSOLE = 'INFO'
 # フォーマットを指定 (https://docs.python.jp/3/library/logging.html#logrecord-attributes)
 _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lineno)d] %(message)s'
 
+### PUREなAPI送信のためのメソッドを共通化で作ります。各メソッドから呼び出す想定 ###
+## 引数エラーチェックなしのため呼び出す側で問題ない時だけ呼び出して
+## returns response
+"""
+Post tweet v1.1
+"""
+# もう使わないのでnot implemented
+
+"""
+Post tweet API v2
+"""
+def tweet_v2(teamId=0, msg=""):
+    print("*** tweet_v2() START ***")
+    print("teamId: ", teamId, " msg:", msg)
+
+    activeAccount = oauthByTeamId(teamId)
+    url = "https://api.twitter.com/2/tweets"
+    json_data = {"text" : msg}
+
+    resMsg = ""
+
+    try:
+        req = activeAccount.post(url, data = json.dumps(json_data))
+
+        # レスポンスを確認
+        if req.status_code != (200 or 201 or 403):
+            print (vars(req), location())
+            resMsg = "Error: " + location()
+        else:
+            print("Post success")
+            resMsg = "Success: " + location()
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** tweet_v2() END ***")
+    response = setResponse(req.status_code, resMsg)
+    return response
+
+"""
+Like a tweet v2
+"""
+def like_v2(teamId=0, tweetId=""):
+    print("*** like_v2() START ***")
+    print("teamId: ", teamId, " tweetId:", tweetId)
+    
+    activeAccount = oauthByTeamId(teamId)
+    accountId = twitterIdByTeamId(teamId)
+    resMsg = ""
+
+    url = "https://api.twitter.com/2/users/" + accountId + "/likes"
+    data = {"tweet_id": tweetId}
+    try:
+        req = activeAccount.post(url, data = json.dumps(data))
+
+        # レスポンスを確認
+        if req.status_code != (200 or 201 or 403):
+            print (vars(req), location())
+            resMsg = "Error: " + location()
+        else:
+            print("Fav success")
+            resMsg = "Success: " + location()
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** like_v2() END ***")
+    response = setResponse(req.status_code, resMsg)
+    return response
+
 """
 Twitterポストします
 """
@@ -39,79 +105,26 @@ def twitter_post(data=None):
 
     teamId = request.query.get('teamId')
 
-    proceedFlg = True
+    errorMsg = ""
 
-    try:
-        if teamId == None:
-            print("teamIdが見つかりませんでした ", location(), " ", request)
-            proceedFlg = False
+    if teamId == None:
+        print("teamIdが見つかりませんでした ", location(), " ", request)
+        errorMsg = "teamIdが見つかりませんでした ", location()
 
-        if request != None and request.json != None and request.json['title'] != None:
-            msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
-        elif data != None and data.get('title') != None:
-            msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
-        else:
-            print("msgが見つかりません ", location())
-            proceedFlg = False
+    if request != None and request.json != None and request.json['title'] != None:
+        msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
+    elif data != None and data.get('title') != None:
+        msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
+    else:
+        print("msgが見つかりません ", location())
+        errorMsg = "msgが見つかりません ", location()
 
-        if proceedFlg:
-            print("msg: ", msg)
-
-            activeAccount = oauthByTeamId(teamId)
-
-            print("一律ver2")
-            url = "https://api.twitter.com/2/tweets"
-            json_data = {"text" : msg}
-            req = activeAccount.post(url, data = json.dumps(json_data))
-            print(json_data, location())
-
-            # レスポンスを確認
-            if req.status_code != (200 or 201 or 403):
-                print (vars(req), location())
-            response = setResponse(req.status_code, "*** twitter_post() ERROR ***")
-            return response
-        else:
-            print("teamIdが見つからなかったのでTwitterポストしませんでした ", location(), " ", request.args)
-    except Exception as e:
-        print(sys.exc_info(), location())
-    print("*** twitter_post() END ***")
-    response = setResponse(req.status_code, "*** twitter_post() END ***")
+    if errorMsg == "":
+        print("msg: ", msg)
+        response = tweet_v2(teamId, msg)
+    else:
+        response = setResponse(401, "Post not processed: " + errorMsg)
     return response
-
-'''
-https://qiita.com/yubais/items/dd143fe608ccad8e9f85
-引数1(twitterIdToFav)のツイートをファボします
-ファボするユーザーは引数2(teamId)
-routeは用意してるが実質呼ばれることはなく、1つ下の'twitter_search'からinternalで呼ばれる
-'''
-@route('/twFav?id=:twitterIdToFav&teamId=:teamId', method='GET')
-def twitter_fav(twitterIdToFav, teamId):
-    print("*** twitter_fav() START ***")
-
-    # Tw API verをチェックし処理分岐
-    apiVer2 = twApiVer2(teamId)
-
-    # API V1.1 / V2でOAuth objectは同じでOK
-    activeAccount = oauthByTeamId(teamId)
-
-    if apiVer2:
-        # 自分のIDを取得する
-        accountId = twitterIdByTeamId(teamId)
-
-        url = "https://api.twitter.com/2/users/" + accountId + "/likes"
-        data = {"tweet_id": twitterIdToFav}
-        req = activeAccount.post(url, data = json.dumps(data))
-    else:
-        url = "https://api.twitter.com/1.1/favorites/create.json?id=" + twitterIdToFav
-        req = activeAccount.post(url)
-
-    # レスポンスを確認
-    if req.status_code != (200 or 201 or 403):
-        print ("Fav Error: %d" % req.status_code, location(), vars(req))
-    else:
-        print("Fav Success:", location())
-    print("*** twitter_fav() END ***")
-    return req.status_code
 
 """
 検索ワードからツイートを検索します
@@ -147,12 +160,13 @@ def twitter_search():
         
         if resJson["statuses"]:
             for item in resJson["statuses"]:
-                status = twitter_fav(item["id_str"], teamId)
-                if status == 200:
+                # どのアカウントもv2でfavするよう変更
+                tmpResponse = like_v2(teamId, item["id_str"])
+                if tmpResponse.status == 200:
                     print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
                     count = count + 1
-                elif status == (429 or 403):
-                    print("Error: " + status + ". Break transaction.")
+                elif tmpResponse.status == (429 or 403):
+                    print("Error: " + tmpResponse.status + ". Break transaction.")
                     response = setResponse(200, "*** twitter_search() END ***")
                     return response
                 if count >= 30:
