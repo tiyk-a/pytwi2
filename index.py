@@ -60,14 +60,15 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 
 ### PUREなAPI送信のためのメソッドを共通化で作ります。各メソッドから呼び出す想定 ###
 ## 引数エラーチェックなしのため呼び出す側で問題ない時だけ呼び出して
-## returns response
+## POST: returns response
+## GET: returns json
 """
 Post tweet v1.1
 """
 # もう使わないのでnot implemented
 
 """
-Post tweet API v2
+(POST) Post tweet API v2
 """
 def tweet_v2(teamId=0, msg=""):
     print("*** tweet_v2() START ***")
@@ -95,7 +96,7 @@ def tweet_v2(teamId=0, msg=""):
     return response
 
 """
-Like a tweet v2
+(POST) Like a tweet v2
 """
 def like_v2(teamId=0, tweetId=""):
     print("*** like_v2() START ***")
@@ -121,6 +122,22 @@ def like_v2(teamId=0, tweetId=""):
     print("*** like_v2() END ***")
     response = setResponse(req.status_code, resMsg)
     return response
+
+"""
+(GET) Search Tweets v2
+"""
+def search_v2(teamId=0, word=''):
+    print("*** search_v2() START ***")
+    url = "https://api.twitter.com/2/tweets/search/recent?query=" + word
+    activeAccount = oauthByTeamId(teamId)
+    try:
+        req = activeAccount.get(url)
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+    except Exception as e:
+        print(sys.exc_info(), e, location())
+    print("*** search_v2() END ***")
+    return resData
 
 """
 Twitterポストします
@@ -168,7 +185,6 @@ def twitter_post(data=None):
 →ファボに使う
 [DEF]30件ファボしたら終わる
 Javaから呼んでます
-API V1.1しかできない。v2はfavしたいユーザーIDが必要
 https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%96%E3%81%A3%E3%81%9F%E3%83%91%E3%83%A9%E3%83%A1%E3%83%BC%E3%82%BF%E3%82%92%E5%88%A9%E7%94%A8%E3%81%99%E3%82%8B
 """
 @route('/twSearch', method='GET')
@@ -182,59 +198,31 @@ def twitter_search():
 
     count = 0
 
-    # Tw API verをチェックし処理分岐
-    apiVer2 = twApiVer2(teamId)
-    if apiVer2:
-        url = "https://api.twitter.com/2/tweets/search/recent?query=" + word
-    else:
-        url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
+    resJson = search_v2(teamId, word)
 
-    if resMsg == "":
-        activeAccount = oauthByTeamId(teamId)
-        req = activeAccount.get(url)
-
-        # 汎用メソッドでレスポンスからデータを取り出す
-        resJson = content_by_req(req)
+    if resJson:
         print(resJson)
-        if resJson:
-            tmpResponse = ''
-            if apiVer2:
-                if resJson['data']:
-                    for item in resJson['data']:
-                        tmpResponse = like_v2(teamId, item["id"])  
-                        if tmpResponse.status_code == 200:
-                            print(item["id"] + " Success teamId=" + teamId, " count:", count)
-                            count = count + 1
-                        elif tmpResponse.status_code == (429 or 403):
-                            print("Error: " + tmpResponse.status_code + ". Break transaction.")
-                            resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
-                            status = tmpResponse.status_code
-                        if count >= 30:
-                            break
-            else:
-                if resJson["statuses"]:
-                    for item in resJson["statuses"]:
-                        tmpResponse = like_v2(teamId, item["id_str"])
-                        if tmpResponse.status_code == 200:
-                            print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
-                            count = count + 1
-                        elif tmpResponse.status_code == (429 or 403):
-                            print("Error: " + tmpResponse.status_code + ". Break transaction.")
-                            resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
-                            status = tmpResponse.status_code
-                        if count >= 30:
-                            break
-                    resMsg = "ファボしました"
-                    status = req.status_code
-                else:
-                    print("検索結果が0件でした", "word=", word, " teamId=", teamId)
-                    resMsg = "検索結果が0件でした", "word=", word, " teamId=", teamId
-                    status = req.status_code
+        tmpResponse = ''
+        if 'data' in resJson.keys():
+            if resJson['data']:
+                for item in resJson['data']:
+                    tmpResponse = like_v2(teamId, item["id"])  
+                    if tmpResponse.status_code == 200:
+                        print(item["id"] + " Success teamId=" + teamId, " count:", count)
+                        count = count + 1
+                    elif tmpResponse.status_code == (429 or 403):
+                        print("Error: " + tmpResponse.status_code + ". Break transaction.")
+                        resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
+                        status = tmpResponse.status_code
+                    if count >= 30:
+                        break
         else:
-            print ("Error: %d" % req.status_code, location(), " ", content_by_req(req))
-            response = setResponse(req.status_code, "検索結果が0件でした", "word=", word, " teamId=", teamId)
-            resMsg = "エラーです"
+            resMsg = "データがありません" + tuple_str(location())
             status = 500
+    else:
+        print ("Error: %d" % 500, location())
+        resMsg = "エラーです"
+        status = 500
 
     response = setResponse(status, resMsg)
     print("*** twitter_search() END ***")
