@@ -13,15 +13,43 @@ from requests_oauthlib import OAuth1Session
 from oauthlib.oauth1 import Client
 import json
 
+"""
+https://qiita.com/ymko/items/b46d32b98f013f06d805
+"""
 def location(depth=0):
     frame = inspect.currentframe().f_back
     return (frame.f_code.co_filename, frame.f_lineno)
+
+"""
+tupleをstrに変換して返します
+location()を文字列にしたい時に使う想定
+"""
+def tuple_str(location):
+    return ','.join(map(str,location))
+
+"""
+HttpRequestを引数に渡すと、responseのcontent内部をJsonに変換して返します
+Twitter APIのresponse中身を取り出すために使用。汎用。
+Errorの場合はここでエラーを表示し、Noneを返却
+"""
+def content_by_req(req):
+    inner = json.loads(req._content.decode('utf-8'))
+
+    if "errors" in inner.keys():
+        print(vars(req))
+        inner = None
+    return inner
 
 @route("/")
 def hello_world():
     print("*** hello_world() START ***")
     print("*** hello_world() END ***")
     response = setResponse(200, "*** hello_world() END ***")
+    return response
+
+@route("/tmp")
+def rmp():
+    response = tweet_v2(17, "")
     return response
 
 LOG_LEVEL_FILE = 'DEBUG'
@@ -54,13 +82,12 @@ def tweet_v2(teamId=0, msg=""):
     try:
         req = activeAccount.post(url, data = json.dumps(json_data))
 
-        # レスポンスを確認
-        if req.status_code != (200 or 201 or 403):
-            print (vars(req), location())
-            resMsg = "Error: " + location()
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+        if resData:
+            resMsg = "Success: " + tuple_str(location())
         else:
-            print("Post success")
-            resMsg = "Success: " + location()
+            resMsg = "Error: " + tuple_str(location())
     except Exception as e:
         print(sys.exc_info(), e, location())
     print("*** tweet_v2() END ***")
@@ -83,13 +110,12 @@ def like_v2(teamId=0, tweetId=""):
     try:
         req = activeAccount.post(url, data = json.dumps(data))
 
-        # レスポンスを確認
-        if req.status_code != (200 or 201 or 403):
-            print (vars(req), location())
-            resMsg = "Error: " + location()
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+        if resData:
+            resMsg = "Success: " + tuple_str(location())
         else:
-            print("Fav success")
-            resMsg = "Success: " + location()
+            resMsg = "Error: " + tuple_str(location())
     except Exception as e:
         print(sys.exc_info(), e, location())
     print("*** like_v2() END ***")
@@ -104,12 +130,11 @@ def twitter_post(data=None):
     print("*** twitter_post() START ***")
 
     teamId = request.query.get('teamId')
-
-    errorMsg = ""
+    resMsg = ""
 
     if teamId == None:
         print("teamIdが見つかりませんでした ", location(), " ", request)
-        errorMsg = "teamIdが見つかりませんでした ", location()
+        resMsg = "teamIdが見つかりませんでした ", location()
 
     if request != None and request.json != None and request.json['title'] != None:
         msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
@@ -117,13 +142,25 @@ def twitter_post(data=None):
         msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
     else:
         print("msgが見つかりません ", location())
-        errorMsg = "msgが見つかりません ", location()
+        resMsg = "msgが見つかりません ", location()
 
-    if errorMsg == "":
+    resStatus = ""
+
+    if resMsg == "":
         print("msg: ", msg)
-        response = tweet_v2(teamId, msg)
+        req = tweet_v2(teamId, msg)
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resData = content_by_req(req)
+        if resData:
+            resMsg = "Success: " + tuple_str(location())
+            resStatus = 200
+        else:
+            resMsg = "Error: " + tuple_str(location())
+            resStatus = 500
     else:
-        response = setResponse(401, "Post not processed: " + errorMsg)
+        resStatus = 500
+    
+    response = setResponse(resStatus, resMsg)
     return response
 
 """
@@ -136,6 +173,8 @@ https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%9
 """
 @route('/twSearch', method='GET')
 def twitter_search():
+    resMsg = ""
+    status = ""
     word = request.query.get('q')
     teamId = request.query.get('teamId')
 
@@ -146,38 +185,59 @@ def twitter_search():
     # Tw API verをチェックし処理分岐
     apiVer2 = twApiVer2(teamId)
     if apiVer2:
-        response = setResponse(200, "*** twitter_search() v2未開通 ***")
-        return response
+        url = "https://api.twitter.com/2/tweets/search/recent?query=" + word
     else:
         url = "https://api.twitter.com/1.1/search/tweets.json?q=" + word
 
-    activeAccount = oauthByTeamId(teamId)
-    req = activeAccount.get(url)
+    if resMsg == "":
+        activeAccount = oauthByTeamId(teamId)
+        req = activeAccount.get(url)
 
-    # レスポンスを確認
-    if req.status_code == 200 or 201:
-        resJson = json.loads(req._content.decode('utf-8'))
-        
-        if resJson["statuses"]:
-            for item in resJson["statuses"]:
-                # どのアカウントもv2でfavするよう変更
-                tmpResponse = like_v2(teamId, item["id_str"])
-                if tmpResponse.status == 200:
-                    print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
-                    count = count + 1
-                elif tmpResponse.status == (429 or 403):
-                    print("Error: " + tmpResponse.status + ". Break transaction.")
-                    response = setResponse(200, "*** twitter_search() END ***")
-                    return response
-                if count >= 30:
-                    break
+        # 汎用メソッドでレスポンスからデータを取り出す
+        resJson = content_by_req(req)
+        print(resJson)
+        if resJson:
+            tmpResponse = ''
+            if apiVer2:
+                if resJson['data']:
+                    for item in resJson['data']:
+                        tmpResponse = like_v2(teamId, item["id"])  
+                        if tmpResponse.status_code == 200:
+                            print(item["id"] + " Success teamId=" + teamId, " count:", count)
+                            count = count + 1
+                        elif tmpResponse.status_code == (429 or 403):
+                            print("Error: " + tmpResponse.status_code + ". Break transaction.")
+                            resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
+                            status = tmpResponse.status_code
+                        if count >= 30:
+                            break
+            else:
+                if resJson["statuses"]:
+                    for item in resJson["statuses"]:
+                        tmpResponse = like_v2(teamId, item["id_str"])
+                        if tmpResponse.status_code == 200:
+                            print(item["id_str"] + " Success teamId=" + teamId, " count:", count)
+                            count = count + 1
+                        elif tmpResponse.status_code == (429 or 403):
+                            print("Error: " + tmpResponse.status_code + ". Break transaction.")
+                            resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
+                            status = tmpResponse.status_code
+                        if count >= 30:
+                            break
+                    resMsg = "ファボしました"
+                    status = req.status_code
+                else:
+                    print("検索結果が0件でした", "word=", word, " teamId=", teamId)
+                    resMsg = "検索結果が0件でした", "word=", word, " teamId=", teamId
+                    status = req.status_code
         else:
-            print("検索結果が0件でした", "word=", word, " teamId=", teamId)
-    else:
-        print ("Error: %d" % req.status_code, location(), " ", str(req))
-    
+            print ("Error: %d" % req.status_code, location(), " ", content_by_req(req))
+            response = setResponse(req.status_code, "検索結果が0件でした", "word=", word, " teamId=", teamId)
+            resMsg = "エラーです"
+            status = 500
+
+    response = setResponse(status, resMsg)
     print("*** twitter_search() END ***")
-    response = setResponse(req.status_code, "*** twitter_search() END ***", str(req))
     return response
 
 '''
@@ -210,7 +270,7 @@ def twitter_follow(userToFollow, teamId):
         print ("フォロバ成功: ", userToFollow)
         resCode = req.status_code
     elif req.status_code == 403:
-        res = json.loads(req._content.decode('utf-8'))
+        res = content_by_req(req)
         errCode = res["errors"][0]["code"]
         if errCode == 160:
             print("フォロリクsent: ", userToFollow)
@@ -254,16 +314,16 @@ def twitter_folB():
 
     # レスポンスを確認
     if req2.status_code == 200 or 201:
-        followingRes = json.loads(req2._content.decode('utf-8'))
+        followingRes = content_by_req(req2)
     else:
-        print ("フォローしてる人 get error: %d" % req2.status_code, location(), str(req))
+        print ("フォローしてる人 get error: %d" % req2.status_code, location(), str(req2))
 
 
     # フォロワーを検索します
     req = activeAccount.get(url_followers)
     # レスポンスを確認
     if req.status_code == 200 or 201:
-        followerRes = json.loads(req._content.decode('utf-8'))
+        followerRes = content_by_req(req)
     else:
         print ("フォロワー get error: %d" % req.status_code, location(), str(req))
 
@@ -327,7 +387,7 @@ def engageWithReactors(argAsTeamId=0):
 
         req = activeAccount.get(url)
 
-        resJson = json.loads(req._content.decode('utf-8'))
+        resJson = content_by_req(req)
         if 'data' in resJson.keys():
             dataArr = resJson['data']
 
@@ -359,7 +419,7 @@ def engageWithReactors(argAsTeamId=0):
             # Likeしてる人のリストを取得
             url2 = "https://api.twitter.com/2/tweets/" + tweet + "/liking_users?user.fields=entities,id,location,name,pinned_tweet_id,protected,public_metrics,url,username,verified,withheld"
             req2 = activeAccount.get(url2)
-            resJson2 = json.loads(req2._content.decode('utf-8'))
+            resJson2 = content_by_req(req2)
 
             if 'data' in resJson2.keys():
                 dataArr2 = resJson2['data']
@@ -375,7 +435,7 @@ def engageWithReactors(argAsTeamId=0):
                 # そのユーザーの投稿を5件取得
                 url3 = "https://api.twitter.com/2/users/" + user + "/tweets?tweet.fields=public_metrics,created_at&exclude=retweets&max_results=5"
                 req3 = activeAccount.get(url3)
-                resJson3 = json.loads(req3._content.decode('utf-8'))
+                resJson3 = content_by_req(req3)
                 if 'data' in resJson3.keys():
                     dataArr3 = resJson3['data']
                     if dataArr3:
