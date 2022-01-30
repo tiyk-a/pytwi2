@@ -240,16 +240,10 @@ def twitter_follow(userToFollow, teamId):
 
     activeAccount = oauthByTeamId(teamId)
 
-    # Tw API verをチェックし処理分岐
-    apiVer2 = twApiVer2(teamId)
-    if apiVer2:
-        accountId= twitterIdByTeamId(teamId)
-        url = "https://api.twitter.com/2/users/" + accountId + "/following"
-        json_data = {"target_user_id" : userToFollow}
-        req = activeAccount.post(url, data = json.dumps(json_data))
-    else:
-        url = "https://api.twitter.com/1.1/friendships/create.json?user_id=" + str(userToFollow)
-        req = activeAccount.post(url)
+    accountId= twitterIdByTeamId(teamId)
+    url = "https://api.twitter.com/2/users/" + accountId + "/following"
+    json_data = {"target_user_id" : userToFollow}
+    req = activeAccount.post(url, data = json.dumps(json_data))
     
     resCode = None
 
@@ -285,15 +279,9 @@ def twitter_folB():
 
     teamId = request.query.get('teamId')
 
-    # Tw API verをチェックし処理分岐
-    apiVer2 = twApiVer2(teamId)
-    if apiVer2:
-        accountId= twitterIdByTeamId(teamId)
-        url_followers = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
-        url_follows = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
-    else:
-        url_followers = "https://api.twitter.com/1.1/followers/ids.json"
-        url_follows = "https://api.twitter.com/1.1/friends/ids.json"
+    accountId= twitterIdByTeamId(teamId)
+    url_followers = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
+    url_follows = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
 
     activeAccount = oauthByTeamId(teamId)
 
@@ -317,26 +305,20 @@ def twitter_folB():
 
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
-    if apiVer2:
-        followingUserId = []
-        if followingRes["data"]:
-            for userId in followingRes["data"]:
-                followingUserId.append(userId["id"])
+    followingUserId = []
+    if followingRes["data"]:
+        for userId in followingRes["data"]:
+            followingUserId.append(userId["id"])
 
-        followerUserId = []
-        if followerRes["data"]:
-            for userId in followerRes["data"]:
-                followerUserId.append(userId["id"])
+    followerUserId = []
+    if followerRes["data"]:
+        for userId in followerRes["data"]:
+            followerUserId.append(userId["id"])
 
-        if followerUserId:
-            for twiId in followerUserId:
-                if twiId not in followingUserId:
-                    followTargetArr.append(twiId)
-    else:
-        if followerRes['ids']:
-            for twiId in followerRes['ids']:
-                if twiId not in followingRes['ids']:
-                    followTargetArr.append(twiId)
+    if followerUserId:
+        for twiId in followerUserId:
+            if twiId not in followingUserId:
+                followTargetArr.append(twiId)
     
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
@@ -490,34 +472,6 @@ def oauthByTeamId(teamId=0):
         print ("Error on finding Twitter account", location())
     print("*** oauthByTeamId() END ***")
     return activeAccount
-
-"""
-引数のteamidはtwitter apiがv2対応かどうかを判断します
-（全部v2にしたほうがいいんじゃない？）
-ひとまず、v2でしかポストできないアカはv2になります
-"""
-def twApiVer2(teamId):
-    print("*** twApiVer2() START ***")
-
-    if type(teamId) == str:
-        teamId = int(teamId)
-
-    result = False
-    try:
-        if teamId == 100: # @LjtYdg
-            result = True
-        elif teamId == 101: # @ChiccaSalak
-            result = True
-        elif teamId == 102: # @BlogChicca
-            result = True
-        elif teamId == 103: # @Berry_chicca
-            result = True
-        else: # General Account
-            result = False
-    except Exception:
-        print ("Error on finding Twitter account", location())
-    print("*** twApiVer2() END ***")
-    return result
 
 """
 引数teamIdを元に、twitterアカのIDを返却します
