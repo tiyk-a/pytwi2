@@ -31,7 +31,11 @@ Twitter APIのresponse中身を取り出すために使用。汎用。
 Errorの場合はここでエラーを表示し、Noneを返却
 """
 def content_by_req(req):
-    inner = json.loads(req._content.decode('utf-8'))
+    inner = ""
+    if req._content != None:
+        inner = json.loads(req._content.decode('utf-8'))
+    else:
+        inner = json.loads(req.decode('utf-8'))
 
     if "errors" in inner.keys():
         print(vars(req))
