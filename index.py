@@ -570,7 +570,7 @@ def twitterIdByTeamId(teamId):
 """
 httpResponseを作成します
 """
-def setResponse(status=200, message=''):
+def setResponse(status=200, message='default message'):
     body = json.dumps({'status': status, 'message': message})
     response = HTTPResponse(status = status, body = body)
     response.set_header('Content-Type', 'application/json')
