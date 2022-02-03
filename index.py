@@ -32,7 +32,7 @@ Errorの場合はここでエラーを表示し、Noneを返却
 """
 def content_by_req(req):
     inner = ""
-    if req._content != None:
+    if "_content" in req.keys():
         inner = json.loads(req._content.decode('utf-8'))
     else:
         inner = json.loads(req.decode('utf-8'))
@@ -320,7 +320,7 @@ def twitter_search():
                         print(item["id"] + " Success teamId=" + teamId, " count:", count)
                         count = count + 1
                     elif tmpResponse.status_code == (429 or 403):
-                        print("Error: " + tmpResponse.status_code + ". Break transaction.")
+                        print("Error: " + str(tmpResponse.status_code) + ". Break transaction.")
                         resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
                         status = tmpResponse.status_code
                     if count >= 30:
