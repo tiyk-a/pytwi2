@@ -2,6 +2,7 @@
 import os, urllib.parse
 from bottle import run, route, request, HTTPResponse
 import inspect
+import pprint
 
 from config import *
 
@@ -38,6 +39,7 @@ def content_by_req(req):
         else:
             inner = json.loads(req.decode('utf-8'))
     except Exception as e:
+        pprint.pprint(vars(req))
         print(e)
         inner = json.loads(req.decode('utf-8'))
 
@@ -177,6 +179,7 @@ def following_user(teamId=0):
     accountId = twitterIdByTeamId(teamId)
     url = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
     activeAccount = oauthByTeamId(teamId)
+    resData = None
     try:
         req = activeAccount.get(url)
         # 汎用メソッドでレスポンスからデータを取り出す
