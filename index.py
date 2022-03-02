@@ -34,8 +34,11 @@ Errorの場合はここでエラーを表示し、Noneを返却
 def content_by_req(req):
     inner = ""
     try:
-        if "_content" in req.keys():
-            inner = json.loads(req._content.decode('utf-8'))
+        if type(req) == dict:
+            if "_content" in req.keys():
+                inner = json.loads(req._content.decode('utf-8'))
+            else:
+                inner = json.loads(req.decode('utf-8'))
         else:
             inner = json.loads(req.decode('utf-8'))
     except Exception as e:
