@@ -36,13 +36,25 @@ def content_by_req(req):
     try:
         if type(req) == dict:
             if "_content" in req.keys():
+                print("*****************************************AAAAAA")
                 inner = json.loads(req._content.decode('utf-8'))
             else:
-                inner = json.loads(req.decode('utf-8'))
+                print("*****************************************BBBBBBB")
+                # inner = json.loads(req.decode('utf-8'))
+                print("***KOKO***")
+                pprint.pprint(vars(req))
+                print("***KOKOFIN***")
+                inner = json.loads(req)
         else:
-            inner = json.loads(req.decode('utf-8'))
+            print("*****************************************CCCCCCC")
+            print(req._content)
+            print(type(req))
+            pprint.pprint(vars(req))
+            # inner = json.loads(req.decode('utf-8'))
+            inner = json.loads(req._content.decode('utf-8'))
     except Exception as e:
         pprint.pprint(vars(req))
+        print(type(req))
         print(e)
         inner = json.loads(req.decode('utf-8'))
 
@@ -150,7 +162,7 @@ def search_v2(teamId=0, word=''):
 (POST) Follow User v2
 """
 def follow_user(teamId=0, userToFollow=''):
-    print("*** follow_user() START ***")
+    print("🐶*** follow_user() START ***")
 
     accountId = twitterIdByTeamId(teamId)
     activeAccount = oauthByTeamId(teamId)
@@ -164,12 +176,15 @@ def follow_user(teamId=0, userToFollow=''):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
         if resData:
-            resMsg = "Success: " + tuple_str(location())
+            resMsg = "🐶Success: " + tuple_str(location())
+            print("🐶🐶🐶PREPREPRE")
+            pprint.pprint(resData)
+            print("🐶🐶🐶POPOPOPOPOP")
         else:
-            resMsg = "Error: " + tuple_str(location())
+            resMsg = "🐶Error: " + tuple_str(location())
     except Exception as e:
         print(sys.exc_info(), e, location())
-    print("*** follow_user() END ***")
+    print("🐶*** follow_user() END ***")
     response = setResponse(req.status_code, resMsg)
     return response
 
@@ -198,6 +213,7 @@ def following_user(teamId=0):
 """
 def followers(teamId=0):
     print("*** followers() START ***")
+    resData = None
     accountId = twitterIdByTeamId(teamId)
     url = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
     activeAccount = oauthByTeamId(teamId)
@@ -280,7 +296,7 @@ def twitter_post(data=None):
         print("msgが見つかりません ", location())
         resMsg = "msgが見つかりません ", location()
 
-    resStatus = ""
+    resStatus = 500
 
     if resMsg == "":
         print("msg: ", msg)
@@ -309,7 +325,7 @@ https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%9
 @route('/twSearch', method='GET')
 def twitter_search():
     resMsg = ""
-    status = ""
+    status = 500
     word = request.query.get('q')
     teamId = request.query.get('teamId')
 
@@ -373,7 +389,7 @@ def twitter_folB():
     # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
     followTargetArr = []
     followingUserId = []
-    if 'data' in followingRes.keys():
+    if followingRes != None and 'data' in followingRes.keys():
         for userId in followingRes["data"]:
             followingUserId.append(userId["id"])
     else:
@@ -381,7 +397,7 @@ def twitter_folB():
         status = 500
 
     followerUserId = []
-    if 'data' in followerRes.keys():
+    if followerRes != None and 'data' in followerRes.keys():
         for userId in followerRes["data"]:
             followerUserId.append(userId["id"])
     else:
@@ -408,7 +424,7 @@ def twitter_folB():
 
     if resMsg == '':
         resMsg = 'エラー検知なし'
-        status = '200'
+        status = 200
     response = setResponse(status, resMsg)
     print("*** twitter_folB() END ***")
     return response
@@ -581,8 +597,10 @@ def twitterIdByTeamId(teamId):
 httpResponseを作成します
 """
 def setResponse(status=200, message='default message'):
-    body = json.dumps({'status': status, 'message': message})
-    response = HTTPResponse(status = status, body = body)
+    print("**************STATUS: " + str(status))
+    print("**************MESSAGE: " + message)
+    body = json.dumps({'status': status, 'message': message, 'reason': message})
+    response = HTTPResponse(status = status, body = body, reason = message)
     response.set_header('Content-Type', 'application/json')
     return response
 
