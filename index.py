@@ -666,7 +666,7 @@ log fileにログを書き込みます
 def logWriter(log, fileName):
     now = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
 
-    with open(fileName, 'a') as f:
+    with open(fileName, 'a+') as f:
         print(now, log, file=f)
 
 @route("/env")
