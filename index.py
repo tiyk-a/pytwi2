@@ -1,16 +1,26 @@
 # -*- coding: utf-8 -*-
+import datetime
 import os, urllib.parse
 from bottle import run, route, request, HTTPResponse
 import inspect
+import pytz
 import pprint
 
 from config import *
 
 import urllib.request
 import logging
+from logging.handlers import TimedRotatingFileHandler
 from requests_oauthlib import OAuth1Session
 from oauthlib.oauth1 import Client
 import json
+
+"""
+Operation
+system log -> logger.debug("message")
+
+Error log -> logger.debug(e, "exception.log")
+"""
 
 """
 https://qiita.com/ymko/items/b46d32b98f013f06d805
@@ -36,37 +46,39 @@ def content_by_req(req):
     try:
         if type(req) == dict:
             if "_content" in req.keys():
-                print("*****************************************AAAAAA")
+                logger.debug("A")
+                logger.debug("*****************************************AAAAAA")
                 inner = json.loads(req._content.decode('utf-8'))
             else:
-                print("*****************************************BBBBBBB")
+                logger.debug("B")
+                logger.debug("*****************************************BBBBBBB")
                 # inner = json.loads(req.decode('utf-8'))
-                print("***KOKO***")
+                logger.debug("***KOKO***")
                 pprint.pprint(vars(req))
-                print("***KOKOFIN***")
+                logger.debug("***KOKOFIN***")
                 inner = json.loads(req)
         else:
-            print("*****************************************CCCCCCC")
-            print(req._content)
-            print(type(req))
-            pprint.pprint(vars(req))
+            logger.debug("*****************************************CCCCCCC")
+            logger.debug(req._content)
+            logger.debug(type(req))
+            logger.debug(vars(req))
             # inner = json.loads(req.decode('utf-8'))
             inner = json.loads(req._content.decode('utf-8'))
     except Exception as e:
-        pprint.pprint(vars(req))
-        print(type(req))
-        print(e)
+        logWriter(vars(req), "exception.log")
+        logWriter(type(req), "exception.log")
+        logWriter(e, "exception.log")
         inner = json.loads(req.decode('utf-8'))
 
     if "errors" in inner.keys():
-        print(vars(req))
+        logWriter(vars(req), "exception.log")
         inner = None
     return inner
 
 @route("/")
 def hello_world():
-    print("*** hello_world() START ***")
-    print("*** hello_world() END ***")
+    logger.debug("*** hello_world() START ***")
+    logger.debug("*** hello_world() END ***")
     response = setResponse(200, "*** hello_world() END ***")
     return response
 
@@ -89,8 +101,9 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 (POST) Post tweet API v2
 """
 def tweet_v2(teamId=0, msg=""):
-    print("*** tweet_v2() START ***")
-    print("teamId: ", teamId, " msg:", msg)
+    logger.debug("*** tweet_v2() START ***")
+    logger.debug("*** tweet_v2() START ***")
+    logger.debug("teamId: ", teamId, " msg:", msg)
 
     activeAccount = oauthByTeamId(teamId)
     url = "https://api.twitter.com/2/tweets"
@@ -108,8 +121,8 @@ def tweet_v2(teamId=0, msg=""):
         else:
             resMsg = "Error: " + tuple_str(location())
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** tweet_v2() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** tweet_v2() END ***")
     response = setResponse(req.status_code, resMsg)
     return response
 
@@ -117,8 +130,8 @@ def tweet_v2(teamId=0, msg=""):
 (POST) Like a tweet v2
 """
 def like_v2(teamId=0, tweetId=""):
-    print("*** like_v2() START ***")
-    print("teamId: ", teamId, " tweetId:", tweetId)
+    logger.debug("*** like_v2() START ***")
+    logger.debug("teamId: ", teamId, " tweetId:", tweetId)
     
     activeAccount = oauthByTeamId(teamId)
     accountId = twitterIdByTeamId(teamId)
@@ -136,8 +149,8 @@ def like_v2(teamId=0, tweetId=""):
         else:
             resMsg = "Error: " + tuple_str(location())
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** like_v2() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** like_v2() END ***")
     response = setResponse(req.status_code, resMsg)
     return response
 
@@ -146,7 +159,7 @@ def like_v2(teamId=0, tweetId=""):
 returns JSON
 """
 def search_v2(teamId=0, word=''):
-    print("*** search_v2() START ***")
+    logger.debug("*** search_v2() START ***")
     url = "https://api.twitter.com/2/tweets/search/recent?query=" + word
     activeAccount = oauthByTeamId(teamId)
     try:
@@ -154,15 +167,15 @@ def search_v2(teamId=0, word=''):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** search_v2() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** search_v2() END ***")
     return resData
 
 """
 (POST) Follow User v2
 """
 def follow_user(teamId=0, userToFollow=''):
-    print("🐶*** follow_user() START ***")
+    logger.debug("🐶*** follow_user() START ***")
 
     accountId = twitterIdByTeamId(teamId)
     activeAccount = oauthByTeamId(teamId)
@@ -177,14 +190,14 @@ def follow_user(teamId=0, userToFollow=''):
         resData = content_by_req(req)
         if resData:
             resMsg = "🐶Success: " + tuple_str(location())
-            print("🐶🐶🐶PREPREPRE")
+            logger.debug("🐶🐶🐶PREPREPRE")
             pprint.pprint(resData)
-            print("🐶🐶🐶POPOPOPOPOP")
+            logger.debug("🐶🐶🐶POPOPOPOPOP")
         else:
             resMsg = "🐶Error: " + tuple_str(location())
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("🐶*** follow_user() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("🐶*** follow_user() END ***")
     response = setResponse(req.status_code, resMsg)
     return response
 
@@ -193,7 +206,7 @@ def follow_user(teamId=0, userToFollow=''):
 ページング未対応
 """
 def following_user(teamId=0):
-    print("*** following_user() START ***")
+    logger.debug("*** following_user() START ***")
     accountId = twitterIdByTeamId(teamId)
     url = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
     activeAccount = oauthByTeamId(teamId)
@@ -203,8 +216,8 @@ def following_user(teamId=0):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** following_user() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** following_user() END ***")
     return resData
 
 """
@@ -212,7 +225,7 @@ def following_user(teamId=0):
 ページング未対応
 """
 def followers(teamId=0):
-    print("*** followers() START ***")
+    logger.debug("*** followers() START ***")
     resData = None
     accountId = twitterIdByTeamId(teamId)
     url = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
@@ -222,8 +235,8 @@ def followers(teamId=0):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** followers() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** followers() END ***")
     return resData
 
 """
@@ -233,7 +246,7 @@ teamId=ツイートを取得するOAuthアカウント
 targetAccountId=ツイートを取得したいアカウント
 """
 def tweets(teamId=0, targetAccountId=None, nextPageToken=None, max_results=30):
-    print("*** tweets() START ***")
+    logger.debug("*** tweets() START ***")
 
     # ツイートを取得するアカウントがOAuthアカウントと違う場合はarg2から取得する
     if targetAccountId:
@@ -253,15 +266,15 @@ def tweets(teamId=0, targetAccountId=None, nextPageToken=None, max_results=30):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** tweets() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** tweets() END ***")
     return resData
 
 """
 (GET) そのツイートをlikeしているユーザーを取得します
 """
 def liking_users_data(teamId=0, tweetId=''):
-    print("*** liking_users_data() START ***")
+    logger.debug("*** liking_users_data() START ***")
     activeAccount = oauthByTeamId(teamId)
     url = "https://api.twitter.com/2/tweets/" + tweetId + "/liking_users?user.fields=entities,id,location,name,pinned_tweet_id,protected,public_metrics,url,username,verified,withheld"
 
@@ -270,8 +283,8 @@ def liking_users_data(teamId=0, tweetId=''):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
     except Exception as e:
-        print(sys.exc_info(), e, location())
-    print("*** liking_users_data() END ***")
+        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+    logger.debug("*** liking_users_data() END ***")
     return resData
 
 """
@@ -279,13 +292,13 @@ Twitterポストします
 """
 @route('/twi', method='POST')
 def twitter_post(data=None):
-    print("*** twitter_post() START ***")
+    logger.debug("*** twitter_post() START ***")
 
     teamId = request.query.get('teamId')
     resMsg = ""
 
     if teamId == None:
-        print("teamIdが見つかりませんでした ", location(), " ", request)
+        logger.debug("teamIdが見つかりませんでした ", location(), " ", request)
         resMsg = "teamIdが見つかりませんでした ", location()
 
     if request != None and request.json != None and request.json['title'] != None:
@@ -293,13 +306,13 @@ def twitter_post(data=None):
     elif data != None and data.get('title') != None:
         msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
     else:
-        print("msgが見つかりません ", location())
+        logger.debug("msgが見つかりません ", location())
         resMsg = "msgが見つかりません ", location()
 
     resStatus = 500
 
     if resMsg == "":
-        print("msg: ", msg)
+        logger.debug("msg: ", msg)
         req = tweet_v2(teamId, msg)
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
@@ -329,24 +342,24 @@ def twitter_search():
     word = request.query.get('q')
     teamId = request.query.get('teamId')
 
-    print("*** twitter_search() START ", "word=", word, " teamId=", teamId, " ***")
+    logger.debug("*** twitter_search() START ", "word=", word, " teamId=", teamId, " ***")
 
     count = 0
 
     resJson = search_v2(teamId, word)
 
     if resJson:
-        print(resJson)
+        logger.debug(resJson)
         tmpResponse = ''
         if 'data' in resJson.keys():
             if resJson['data']:
                 for item in resJson['data']:
                     tmpResponse = like_v2(teamId, item["id"])  
                     if tmpResponse.status_code == 200:
-                        print(item["id"] + " Success teamId=" + teamId, " count:", count)
+                        logger.debug(item["id"] + " Success teamId=" + teamId, " count:", count)
                         count = count + 1
                     elif tmpResponse.status_code == (429 or 403):
-                        print("Error: " + str(tmpResponse.status_code) + ". Break transaction.")
+                        logger.debug("Error: " + str(tmpResponse.status_code) + ". Break transaction.")
                         resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
                         status = tmpResponse.status_code
                     if count >= 30:
@@ -355,7 +368,7 @@ def twitter_search():
             resMsg = "データがありません" + tuple_str(location())
             status = 500
     else:
-        print ("Error: %d" % 500, location())
+        logger.debug ("Error: %d" % 500, location())
         resMsg = "エラーです"
         status = 500
 
@@ -363,7 +376,7 @@ def twitter_search():
         resMsg = "どこにも引っ掛からなかった" + tuple_str(location())
         status = 200
     response = setResponse(status, resMsg)
-    print("*** twitter_search() END ***")
+    logger.debug("*** twitter_search() END ***")
     return response
 
 '''
@@ -374,7 +387,7 @@ Javaから呼んでます
 '''
 @route('/twFolB', method='GET')
 def twitter_folB():
-    print("*** twitter_folB() START ***")
+    logger.debug("*** twitter_folB() START ***")
     resMsg = ''
     status = ''
 
@@ -426,7 +439,7 @@ def twitter_folB():
         resMsg = 'エラー検知なし'
         status = 200
     response = setResponse(status, resMsg)
-    print("*** twitter_folB() END ***")
+    logger.debug("*** twitter_folB() END ***")
     return response
 
 """
@@ -473,7 +486,7 @@ def engageWithReactors(argAsTeamId=0):
 
     # リアクションのあるツイートがあったら、それぞれのツイートをlikeしてる人を確認します
     if checkTweet:
-        print("checkTweetの中身:", checkTweet, location())
+        logger.debug("checkTweetの中身:", checkTweet, location())
         liking_users = []
         for tweet in checkTweet:
             resJson2 = liking_users_data(teamId, tweet)
@@ -487,7 +500,7 @@ def engageWithReactors(argAsTeamId=0):
         
         # likeしているユーザーIDを取得したらそのユーザーの投稿をlikeしに行く
         if liking_users:
-            print("liking_users:", liking_users, location())
+            logger.debug("liking_users:", liking_users, location())
             for user in liking_users:
                 # そのユーザーの投稿を5件取得
                 resJson3 = tweets(teamId, user, nextPageToken, 5)
@@ -499,12 +512,12 @@ def engageWithReactors(argAsTeamId=0):
                             # 2件likeを試みる
                             if count < 3:
                                 req4 = like_v2(teamId, data3["id"])
-                                print("likeしました:", data3["id"], vars(req4))
+                                logger.debug("likeしました:", data3["id"], vars(req4))
                                 count = count + 1
                             else:
                                 break
                 else:
-                    print(resJson3, location())
+                    logger.debug(resJson3, location())
 
     return "OK"
 
@@ -513,7 +526,7 @@ teamIdを渡せばOAuthオブジェクトを返却します
 ジャニ以外のTwitterアカも対応
 """
 def oauthByTeamId(teamId=0):
-    print("*** oauthByTeamId() START ***")
+    logger.debug("*** oauthByTeamId() START ***")
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -522,38 +535,38 @@ def oauthByTeamId(teamId=0):
     activeAccount = None
     try:
         if teamId == 17: # SixTONES
-            print(17)
+            logger.debug(17)
             activeAccount = OAuth1Session(sixtones_consumer_key, sixtones_consumer_secret, sixtones_token, sixtones_token_secret, client_class=CustomClient)
         elif teamId == 6: # Snowman
-            print(6)
+            logger.debug(6)
             activeAccount = OAuth1Session(snowman_consumer_key, snowman_consumer_secret, snowman_token, snowman_token_secret, client_class=CustomClient)
         elif teamId == 16: # King & Prince
-            print(16)
+            logger.debug(16)
             activeAccount = OAuth1Session(kinpri_consumer_key, kinpri_consumer_secret, kinpri_token, kinpri_token_secret, client_class=CustomClient)
         elif teamId == 18: # なにわ男子
-            print(18)
+            logger.debug(18)
             activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret, client_class=CustomClient)
         elif teamId == 8: # Sexy Zone
-            print(8)
+            logger.debug(8)
             activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret, client_class=CustomClient)
         elif teamId == 100: # @LjtYdg
-            print(100)
+            logger.debug(100)
             activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret, client_class=CustomClient)
         elif teamId == 101: # @ChiccaSalak
-            print(101)
+            logger.debug(101)
             activeAccount = OAuth1Session(tosi_consumer_key, tosi_consumer_secret, tosi_token, tosi_token_secret, client_class=CustomClient)
         elif teamId == 102: # @BlogChicca
-            print(102)
+            logger.debug(102)
             activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret, client_class=CustomClient)
         elif teamId == 103: # @Berry_chicca
-            print(103)
+            logger.debug(103)
             activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret, client_class=CustomClient)
         else: # General Account
-            print("General", teamId)
+            logger.debug("General", teamId)
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
     except Exception:
-        print ("Error on finding Twitter account", location())
-    print("*** oauthByTeamId() END ***")
+        logWriter("Error on finding Twitter account" + location(), "exception.log")
+    logger.debug("*** oauthByTeamId() END ***")
     return activeAccount
 
 """
@@ -561,7 +574,7 @@ def oauthByTeamId(teamId=0):
 V2 APIで使用します
 """
 def twitterIdByTeamId(teamId):
-    print("*** twitterIdByTeamId() START ***")
+    logger.debug("*** twitterIdByTeamId() START ***")
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -589,16 +602,16 @@ def twitterIdByTeamId(teamId):
         else: # General Account
             result = "1409384870745313286"
     except Exception:
-        print ("Error on finding Twitter account", location())
-    print("*** twitterIdByTeamId() END ***")
+        logWriter("Error on finding Twitter account" + location(), "exception.log")
+    logger.debug("*** twitterIdByTeamId() END ***")
     return result
 
 """
 httpResponseを作成します
 """
 def setResponse(status=200, message='default message'):
-    print("**************STATUS: " + str(status))
-    print("**************MESSAGE: " + message)
+    logger.debug("**************STATUS: " + str(status))
+    logger.debug("**************MESSAGE: " + message)
     body = json.dumps({'status': status, 'message': message, 'reason': message})
     response = HTTPResponse(status = status, body = body, reason = message)
     response.set_header('Content-Type', 'application/json')
@@ -606,27 +619,46 @@ def setResponse(status=200, message='default message'):
 
 class CustomClient(Client):
     def _render(self, request, formencode=False, realm=None):
-        print("*** CustomClient._render() START ***")
+        logger.debug("*** CustomClient._render() START ***")
         request.headers['Content-type'] = "application/json"
-        print("*** CustomClient._render() END ***")
+        logger.debug("*** CustomClient._render() END ***")
         return super()._render(request, formencode, realm)
 
 """
 LOG_LEVEL_FILEレベル以上のログをファイルに出力する設定
+https://basicincome30.com/python-log-output
 """
 # datetime_moduleモジュールを呼び出す側(test.py)で出力形式などの基本設定をする
 logging.basicConfig(
     # LOG_LEVEL_FILE = 'DEBUG' なら logging.DEBUGを指定していることになる
     level=getattr(logging, LOG_LEVEL_FILE),
     format=_detail_formatting,
-    filename='./logs/yahoo.log'
+    filename='./logs/index.log'
 )
+
+# def logSetup ():
+logger = logging.getLogger('index')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter(fmt='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d-%y %H:%M:%S')
+fh = TimedRotatingFileHandler('/Users/chiara/Desktop/pyTwi2/logs/index.log', when='midnight')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+# return logger
 
 console = logging.StreamHandler()
 # LOG_LEVEL_CONSOLE = 'INFO' なら logging.INFOを指定していることになる
 console.setLevel(getattr(logging, LOG_LEVEL_CONSOLE))
 console_formatter = logging.Formatter(_detail_formatting)
 console.setFormatter(console_formatter)
+
+"""
+log fileにログを書き込みます
+"""
+def logWriter(log, fileName):
+    now = datetime.datetime.now(pytz.timezone('Asia/Tokyo'))
+
+    with open(fileName, 'a') as f:
+        print(now, log, file=f)
 
 @route("/env")
 def yahoo():
