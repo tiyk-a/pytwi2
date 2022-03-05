@@ -150,7 +150,7 @@ def like_v2(teamId=0, tweetId=""):
             resMsg = "LIKEできました: " + tuple_str(location())
             logWriter(resMsg, "like_v2.log")
         else:
-            resMsg = "LIKE失敗": " + tuple_str(location())
+            resMsg = "LIKE失敗: " + tuple_str(location())
             logWriter(resMsg, "like_v2_F.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
