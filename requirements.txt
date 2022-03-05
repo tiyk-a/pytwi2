@@ -8,3 +8,4 @@ tweepy==3.10.0
 twitter==1.19.3
 beautifulsoup4==4.9.3
 selenium==3.141.0
+pytz==2021.1
