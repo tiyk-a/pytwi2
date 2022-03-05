@@ -19,7 +19,7 @@ import json
 Operation
 system log -> logger.debug("message")
 
-Error log -> logger.debug(e, "exception.log")
+Error log -> logWriter(e, "exception.log")
 """
 
 """
@@ -117,9 +117,11 @@ def tweet_v2(teamId=0, msg=""):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
         if resData:
-            resMsg = "Success: " + tuple_str(location())
+            resMsg = "ツイートしました: " + tuple_str(location())
+            logWriter(resMsg, "tweet_v2.log")
         else:
-            resMsg = "Error: " + tuple_str(location())
+            resMsg = "ツイート失敗: " + tuple_str(location())
+            logWriter(resMsg, "tweet_v2_F.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** tweet_v2() END ***")
@@ -145,9 +147,11 @@ def like_v2(teamId=0, tweetId=""):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
         if resData:
-            resMsg = "Success: " + tuple_str(location())
+            resMsg = "LIKEできました: " + tuple_str(location())
+            logWriter(resMsg, "like_v2.log")
         else:
-            resMsg = "Error: " + tuple_str(location())
+            resMsg = "LIKE失敗": " + tuple_str(location())
+            logWriter(resMsg, "like_v2_F.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** like_v2() END ***")
@@ -166,6 +170,7 @@ def search_v2(teamId=0, word=''):
         req = activeAccount.get(url)
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
+        logWriter(resData, "search_v2.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** search_v2() END ***")
@@ -189,12 +194,11 @@ def follow_user(teamId=0, userToFollow=''):
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
         if resData:
-            resMsg = "🐶Success: " + tuple_str(location())
-            logger.debug("🐶🐶🐶PREPREPRE")
-            pprint.pprint(resData)
-            logger.debug("🐶🐶🐶POPOPOPOPOP")
+            resMsg = "フォローしました: " + tuple_str(location())
+            logWriter(resMsg, "follow_user.log")
         else:
-            resMsg = "🐶Error: " + tuple_str(location())
+            resMsg = "フォロー失敗: " + tuple_str(location())
+            logWriter(resMsg, "follow_user_F.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("🐶*** follow_user() END ***")
@@ -215,6 +219,7 @@ def following_user(teamId=0):
         req = activeAccount.get(url)
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
+        logWriter(resData, "following_user.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** following_user() END ***")
@@ -234,6 +239,7 @@ def followers(teamId=0):
         req = activeAccount.get(url)
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
+        logWriter(resData, "followers.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** followers() END ***")
@@ -265,6 +271,7 @@ def tweets(teamId=0, targetAccountId=None, nextPageToken=None, max_results=30):
         req = activeAccount.get(url)
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
+        logWriter(resData, "tweets.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** tweets() END ***")
@@ -282,6 +289,7 @@ def liking_users_data(teamId=0, tweetId=''):
         req = activeAccount.get(url)
         # 汎用メソッドでレスポンスからデータを取り出す
         resData = content_by_req(req)
+        logWriter(resData, "liking_users_data.log")
     except Exception as e:
         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
     logger.debug("*** liking_users_data() END ***")
@@ -512,6 +520,7 @@ def engageWithReactors(argAsTeamId=0):
                             # 2件likeを試みる
                             if count < 3:
                                 req4 = like_v2(teamId, data3["id"])
+                                logWriter("likeしました:" + data3["id"], "engageWithReactors.log")
                                 logger.debug("likeしました:", data3["id"], vars(req4))
                                 count = count + 1
                             else:
