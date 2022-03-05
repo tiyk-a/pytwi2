@@ -649,7 +649,7 @@ logging.basicConfig(
 logger = logging.getLogger('index')
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(fmt='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d-%y %H:%M:%S')
-fh = TimedRotatingFileHandler('/Users/chiara/Desktop/pyTwi2/logs/index.log', when='midnight')
+fh = TimedRotatingFileHandler('./logs/index.log', when='midnight')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 # return logger
