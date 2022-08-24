@@ -18,7 +18,6 @@ import json
 """
 Operation
 system log -> logger.debug("message")
-
 Error log -> logWriter(e, "exception.log")
 """
 
@@ -46,11 +45,9 @@ def content_by_req(req):
     try:
         if type(req) == dict:
             if "_content" in req.keys():
-                logger.debug("A")
-                logger.debug("*****************************************AAAAAA")
+                logger.debug("*****************************************")
                 inner = json.loads(req._content.decode('utf-8'))
             else:
-                logger.debug("B")
                 logger.debug("*****************************************BBBBBBB")
                 # inner = json.loads(req.decode('utf-8'))
                 logger.debug("***KOKO***")
@@ -99,9 +96,9 @@ _detail_formatting = '%(asctime)s %(levelname)-8s [%(module)s#%(funcName)s %(lin
 ## GET: returns json
 """
 (POST) Post tweet API v2
+ツイートします
 """
 def tweet_v2(teamId=0, msg=""):
-    logger.debug("*** tweet_v2() START ***")
     logger.debug("*** tweet_v2() START ***")
     logger.debug("teamId: ", teamId, " msg:", msg)
 
@@ -570,6 +567,9 @@ def oauthByTeamId(teamId=0):
         elif teamId == 103: # @Berry_chicca
             logger.debug(103)
             activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret, client_class=CustomClient)
+        elif teamId == 104: # @guts_da_ze__
+            logger.debug(104)
+            activeAccount = OAuth1Session(lider_consumer_key, lider_consumer_secret, lider_token, lider_token_secret, client_class=CustomClient)
         else: # General Account
             logger.debug("General", teamId)
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
@@ -608,6 +608,8 @@ def twitterIdByTeamId(teamId):
             result = "1353959290596331523"
         elif teamId == 103: # @Berry_chicca
             result = "1267562271036674049"
+        elif teamId == 104: # @guts_da_ze__
+            result = "1557146921080606720"
         else: # General Account
             result = "1409384870745313286"
     except Exception:

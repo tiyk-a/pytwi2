@@ -61,6 +61,12 @@ berry_consumer_secret = "Cp4lbCWTESpoIawAmW3I3xIwoBb9H56sSs33vdlJcuz4T7uuym"
 berry_token = "1267562271036674049-beuF31caj0RvGaYWNJEmOtIghNCuUb"
 berry_token_secret = "WLpdR7adwdBmQxsFc3h0mjm2idR2A5pJKgp0H4rNlRodv"
 
+# @guts_da_ze__
+lider_consumer_key = "O2emuBzPD5HeqTtnqCzbeYnt0"
+lider_consumer_secret = "G3njaOdNmXIjuN5gYmlMNIVMxyAy942qbOyKfng2SWZHLjHen2"
+lider_token = "1557146921080606720-ksQM6moLm5D326urygu0YluqpD6Hjm"
+lider_token_secret = "o8UbespoBdpGtukHrjMamufIN7FhvXcDpg7CkasG744yc"
+
 class Teams:
     snowman=[6,"スノーマン",None,"Snow Man"]
     kanjani=[7,"カンジャニエイト","関ジャニ","関ジャニ∞"]

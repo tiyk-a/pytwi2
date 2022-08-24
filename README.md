@@ -37,3 +37,10 @@
 ```
 $ python retweet.py Infinity_rJP arashi5official kingandprince_j tokioinc_taichi smileup_project islandtv_up J_DREAMIsLAND
 ```
+
+## ログの見方
+これを使っています
+https://devcenter.heroku.com/articles/papertrail
+
+下のURLにアクセスするとログが直接見れる
+https://my.papertrailapp.com/systems/pytwi2/events
