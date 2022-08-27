@@ -79,6 +79,12 @@ def hello_world():
     response = setResponse(200, "*** hello_world() END ***")
     return response
 
+@route('/test', method='POST')
+def test_world():
+    # logger.debug("***test START ***")
+    response = setResponse(200, "*** test END ***")
+    return response
+
 @route("/tmp")
 def rmp():
     response = tweet_v2(17, "")
@@ -295,42 +301,28 @@ def liking_users_data(teamId=0, tweetId=''):
 """
 Twitterポストします
 """
-@route('/twi', method='POST')
+# @route('/twi', method='POST')
+@route('/twi')
 def twitter_post(data=None):
     logger.debug("*** twitter_post() START ***")
 
     teamId = request.query.get('teamId')
-    resMsg = ""
+    msg = request.query.get('title')
 
     if teamId == None:
         logger.debug("teamIdが見つかりませんでした ", location(), " ", request)
-        resMsg = "teamIdが見つかりませんでした ", location()
 
-    if request != None and request.json != None and request.json['title'] != None:
-        msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
-    elif data != None and data.get('title') != None:
-        msg = urllib.parse.unquote(data.get('title'), encoding='shift-jis')
-    else:
-        logger.debug("msgが見つかりません ", location())
-        resMsg = "msgが見つかりません ", location()
-
-    resStatus = 500
-
-    if resMsg == "":
-        logger.debug("msg: ", msg)
-        req = tweet_v2(teamId, msg)
+    # if resMsg == "":
+    logger.debug("msg: ", msg)
+    req = tweet_v2(teamId, msg)
         # 汎用メソッドでレスポンスからデータを取り出す
-        resData = content_by_req(req)
-        if resData:
-            resMsg = "Success: " + tuple_str(location())
-            resStatus = 200
-        else:
-            resMsg = "Error: " + tuple_str(location())
-            resStatus = 500
-    else:
-        resStatus = 500
+        # resData = content_by_req(req)
+        # if resData:
+        #     resMsg = "Success: " + tuple_str(location())
+        # else:
+        #     resMsg = "Error: " + tuple_str(location())
     
-    response = setResponse(resStatus, resMsg)
+    response = setResponse(200, "Tweeted!")
     return response
 
 """
@@ -343,7 +335,6 @@ https://qiita.com/masaibar/items/e3b6911aee6741037549#%E5%8F%97%E3%81%91%E5%8F%9
 @route('/twSearch', method='GET')
 def twitter_search():
     resMsg = ""
-    status = 500
     word = request.query.get('q')
     teamId = request.query.get('teamId')
 
@@ -366,22 +357,19 @@ def twitter_search():
                     elif tmpResponse.status_code == (429 or 403):
                         logger.debug("Error: " + str(tmpResponse.status_code) + ". Break transaction.")
                         resMsg = "Error: " + tmpResponse.status_code + ". Break transaction."
-                        status = tmpResponse.status_code
                     if count >= 30:
                         break
         else:
             resMsg = "データがありません" + tuple_str(location())
-            status = 500
     else:
         logger.debug ("Error: %d" % 500, location())
         resMsg = "エラーです"
-        status = 500
 
     if resMsg == '':
         resMsg = "どこにも引っ掛からなかった" + tuple_str(location())
-        status = 200
-    response = setResponse(status, resMsg)
-    logger.debug("*** twitter_search() END ***")
+    # response = setResponse(status, resMsg)
+    response = setResponse(200, "Searched!")
+    # logger.debug("*** twitter_search() END ***")
     return response
 
 '''
@@ -393,8 +381,6 @@ Javaから呼んでます
 @route('/twFolB', method='GET')
 def twitter_folB():
     logger.debug("*** twitter_folB() START ***")
-    resMsg = ''
-    status = ''
 
     teamId = request.query.get('teamId')
 
@@ -410,41 +396,23 @@ def twitter_folB():
     if followingRes != None and 'data' in followingRes.keys():
         for userId in followingRes["data"]:
             followingUserId.append(userId["id"])
-    else:
-        resMsg = 'フォローしている人の取得に失敗'
-        status = 500
 
     followerUserId = []
     if followerRes != None and 'data' in followerRes.keys():
         for userId in followerRes["data"]:
             followerUserId.append(userId["id"])
-    else:
-        resMsg = 'フォロワーの取得に失敗'
-        status = 500
 
     if followerUserId:
         for twiId in followerUserId:
             if twiId not in followingUserId:
                 followTargetArr.append(twiId)
-    else:
-        resMsg = 'フォロワーがいないので処理中断で正常終了'
-        status = 200
     
     if len(followTargetArr) > 0:
         for targetId in followTargetArr:
             follow_res = follow_user(teamId, targetId)
-            if follow_res.status_code != 200:
-                resMsg = 'フォローにエラーあり'
-                status = follow_res.status_code
-    else:
-        resMsg = '新規フォロー不要なため正常終了'
-        status = 200
 
-    if resMsg == '':
-        resMsg = 'エラー検知なし'
-        status = 200
-    response = setResponse(status, resMsg)
-    logger.debug("*** twitter_folB() END ***")
+    response = setResponse(200, "Faved!")
+    # logger.debug("*** twitter_folB() END ***")
     return response
 
 """
@@ -573,9 +541,10 @@ def oauthByTeamId(teamId=0):
         else: # General Account
             logger.debug("General", teamId)
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
-    except Exception:
-        logWriter("Error on finding Twitter account" + location(), "exception.log")
-    logger.debug("*** oauthByTeamId() END ***")
+    except Exception as e:
+        print(e)
+        #logWriter("Error on finding Twitter account" + location(), "exception.log")
+    #logger.debug("*** oauthByTeamId() END ***")
     return activeAccount
 
 """
@@ -612,13 +581,15 @@ def twitterIdByTeamId(teamId):
             result = "1557146921080606720"
         else: # General Account
             result = "1409384870745313286"
-    except Exception:
-        logWriter("Error on finding Twitter account" + location(), "exception.log")
-    logger.debug("*** twitterIdByTeamId() END ***")
+    except Exception as e:
+        print(e)
+    #    logWriter("Error on finding Twitter account" + location(), "exception.log")
+    #logger.debug("*** twitterIdByTeamId() END ***")
     return result
 
 """
 httpResponseを作成します
+bodyはstring
 """
 def setResponse(status=200, message='default message'):
     logger.debug("**************STATUS: " + str(status))
@@ -675,4 +646,6 @@ def logWriter(log, fileName):
 def yahoo():
     return ENV
 
-run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+portInt = int(os.environ.get("PORT", 5000))
+# run(host="0.0.0.0", port=int(os.environ.get("PORT", 5050)))
+run(host="0.0.0.0", port=portInt)

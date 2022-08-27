@@ -38,6 +38,11 @@
 $ python retweet.py Infinity_rJP arashi5official kingandprince_j tokioinc_taichi smileup_project islandtv_up J_DREAMIsLAND
 ```
 
+* Conoha WING
+```
+$ pip3 install -r requirements.txt
+```
+
 ## ログの見方
 これを使っています
 https://devcenter.heroku.com/articles/papertrail
