@@ -306,8 +306,11 @@ Twitterポストします
 def twitter_post(data=None):
     logger.debug("*** twitter_post() START ***")
 
-    teamId = request.query.get('teamId')
-    msg = request.query.get('title')
+    # teamId = request.query.get('teamId')
+    # msg = request.query.get('title')
+
+    teamId = request.query.teamId
+    msg = request.query.title
 
     if teamId == None:
         logger.debug("teamIdが見つかりませんでした ", location(), " ", request)
@@ -646,6 +649,5 @@ def logWriter(log, fileName):
 def yahoo():
     return ENV
 
-portInt = int(os.environ.get("PORT", 5000))
-# run(host="0.0.0.0", port=int(os.environ.get("PORT", 5050)))
+portInt = int(os.environ.get("PORT", PORT))
 run(host="0.0.0.0", port=portInt)
