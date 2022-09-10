@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -- coding: utf-8 --
 import datetime
 import os, urllib.parse
 from bottle import run, route, request, HTTPResponse
@@ -301,8 +302,7 @@ def liking_users_data(teamId=0, tweetId=''):
 """
 Twitterポストします
 """
-# @route('/twi', method='POST')
-@route('/twi')
+@route('/twi', method='POST')
 def twitter_post(data=None):
     logger.debug("*** twitter_post() START ***")
 
@@ -310,13 +310,26 @@ def twitter_post(data=None):
     # msg = request.query.get('title')
 
     teamId = request.query.teamId
-    msg = request.query.title
+    # msg = request.query.title
+    msg = ""
+    print(data)
+
+    if request != None and request.json != None and request.json['title'] != None:
+        print("***1")
+        msg = urllib.parse.unquote(request.json['title'], encoding='shift-jis')
+    elif data != None and data.get('title') != None:
+        print("***2")
+        msg = urllib.parse.unquote(data.get('title'), encoding='utf-8')
+    else:
+        print("***3")
+        logger.debug("msgが見つかりません ", location())
+        # resMsg = "msgが見つかりません ", location()
+
 
     if teamId == None:
         logger.debug("teamIdが見つかりませんでした ", location(), " ", request)
 
-    # if resMsg == "":
-    logger.debug("msg: ", msg)
+    print("msg: ", msg)
     req = tweet_v2(teamId, msg)
         # 汎用メソッドでレスポンスからデータを取り出す
         # resData = content_by_req(req)
@@ -625,7 +638,7 @@ logging.basicConfig(
 logger = logging.getLogger('index')
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(fmt='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d-%y %H:%M:%S')
-fh = TimedRotatingFileHandler('./logs/index.log', when='midnight')
+fh = TimedRotatingFileHandler('./logs/index.log', encoding='utf-8', when='midnight')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 # return logger

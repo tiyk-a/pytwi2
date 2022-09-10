@@ -2,6 +2,16 @@
 
 # Twitter Posting App
 
+# 起動方法
+### 本番環境
+- バックグラウンドで起動
+- nohup.outにコンソール出力が出る
+- `-p`部分があることによりproduction環境のconfigファイルを読みます→port5000
+- `-p`がないと、dev環境のconfigファイルを読みます→port5050
+```
+$ nohup python3 index.py -p &
+```
+
 ## 機能一覧
 * Twitterポスト
   * リクエストが飛んできたら任意のアカウントにポスト
