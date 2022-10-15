@@ -36,6 +36,24 @@ sexyzone_consumer_secret = "TbEX2vfmqKaqAlb6Abx8PfOrBhmHavGGJWmI6QeGa1yLZuAcKb"
 sexyzone_token = "1418289988827901953-82UyZRx5nMYzhQZw1kVoVQDGPl3wMd"
 sexyzone_token_secret = "KwV9YZ4Ni7yTitRUb0pe3c0ATivZ7CMVln2rPzANttxVW"
 
+# kanjani
+kanjani_consumer_key="wLtMhbhapXplXEHouBk4DZo3j"
+kanjani_consumer_secret = "BaCW8Y9hR7TE2TCAFh48NhIVUdDtlAerdbUfWMWRvGKwEMVqVf"
+kanjani_token = "1581075542597828609-P8FRbeCoOw9T1xje9HnjHoEKVUNz4R"
+kanjani_token_secret = "Dv5K9sHc2LDvWgOfLy1uePm84xinVTQe3vm7SW3eVVZQD"
+
+# jump
+jump_consumer_key="SPqFJ78l0uBcFaf1rJhhGQog4"
+jump_consumer_secret = "T2xHEK3xefnqF1BAsEMuLSeqwDFv6hGMrZ2q2rUB0yuho8duN1"
+jump_token = "1581077175117451264-uvXRf81U8vSlVOO8TpZFH7azbAaPuq"
+jump_token_secret = "6jBepjz6pbuaOT3n9omqFjhsquFTeKiLsJIoG82OkQEIW"
+
+# kinki
+kinki_consumer_key="Vd2MeCIaEvEzULnVgkVKEjOy5"
+kinki_consumer_secret = "vvd3CbnfvE0uJqCm1RhrxSUn9wBU6KFAOHAF82QXtPTBhDXbWX"
+kinki_token = "1581078455483260928-ELJY6ImFvBf8vfRCuT2Uzuz5yRVf15"
+kinki_token_secret = "nQdkWWNyrFeiK9E6Pij9LFOuhsKioEvBbZnvNV9tBP0Um"
+
 ### 以下、ついでにジャニと関係ないアカウントも自動化したいので入れる。Javaからの投稿post以外（Favorite, Follow backが使える）
 # @LjtYdg
 love_consumer_key = "bJZBNKtNwO5fmuRl7C2TqjxTV"

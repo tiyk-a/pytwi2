@@ -536,6 +536,15 @@ def oauthByTeamId(teamId=0):
         elif teamId == 18: # なにわ男子
             logger.debug(18)
             activeAccount = OAuth1Session(naniwa_consumer_key, naniwa_consumer_secret, naniwa_token, naniwa_token_secret, client_class=CustomClient)
+        elif teamId == 19: # Hey!Say!JUMP
+            logger.debug(19)
+            activeAccount = OAuth1Session(jump_consumer_key, jump_consumer_secret, jump_token, jump_token_secret, client_class=CustomClient)
+        elif teamId == 7: # kanjani
+            logger.debug(7)
+            activeAccount = OAuth1Session(kanjani_consumer_key, kanjani_consumer_secret, kanjani_token, kanjani_token_secret, client_class=CustomClient)
+        elif teamId == 21: # KinKi Kids
+            logger.debug(21)
+            activeAccount = OAuth1Session(kinki_consumer_key, kinki_consumer_secret, kinki_token, kinki_token_secret, client_class=CustomClient)
         elif teamId == 8: # Sexy Zone
             logger.debug(8)
             activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret, client_class=CustomClient)
