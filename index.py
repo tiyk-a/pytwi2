@@ -183,71 +183,71 @@ def search_v2(teamId=0, word=''):
 """
 (POST) Follow User v2
 """
-def follow_user(teamId=0, userToFollow=''):
-    logger.debug("🐶*** follow_user() START ***")
+# def follow_user(teamId=0, userToFollow=''):
+#     logger.debug("🐶*** follow_user() START ***")
 
-    accountId = twitterIdByTeamId(teamId)
-    activeAccount = oauthByTeamId(teamId)
+#     accountId = twitterIdByTeamId(teamId)
+#     activeAccount = oauthByTeamId(teamId)
 
-    url = "https://api.twitter.com/2/users/" + accountId + "/following"
-    json_data = {"target_user_id" : userToFollow}
+#     url = "https://api.twitter.com/2/users/" + accountId + "/following"
+#     json_data = {"target_user_id" : userToFollow}
 
-    try:
-        req = activeAccount.post(url, data = json.dumps(json_data))
+#     try:
+#         req = activeAccount.post(url, data = json.dumps(json_data))
 
-        # 汎用メソッドでレスポンスからデータを取り出す
-        resData = content_by_req(req)
-        if resData:
-            resMsg = "フォローしました: " + tuple_str(location())
-            logWriter(resMsg, "follow_user.log")
-        else:
-            resMsg = "フォロー失敗: " + tuple_str(location())
-            logWriter(resMsg, "follow_user_F.log")
-    except Exception as e:
-        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
-    logger.debug("🐶*** follow_user() END ***")
-    response = setResponse(req.status_code, resMsg)
-    return response
+#         # 汎用メソッドでレスポンスからデータを取り出す
+#         resData = content_by_req(req)
+#         if resData:
+#             resMsg = "フォローしました: " + tuple_str(location())
+#             logWriter(resMsg, "follow_user.log")
+#         else:
+#             resMsg = "フォロー失敗: " + tuple_str(location())
+#             logWriter(resMsg, "follow_user_F.log")
+#     except Exception as e:
+#         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+#     logger.debug("🐶*** follow_user() END ***")
+#     response = setResponse(req.status_code, resMsg)
+#     return response
 
 """
 (GET) フォローしているユーザー一覧を取得します
 ページング未対応
 """
-def following_user(teamId=0):
-    logger.debug("*** following_user() START ***")
-    accountId = twitterIdByTeamId(teamId)
-    url = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
-    activeAccount = oauthByTeamId(teamId)
-    resData = None
-    try:
-        req = activeAccount.get(url)
-        # 汎用メソッドでレスポンスからデータを取り出す
-        resData = content_by_req(req)
-        logWriter(resData, "following_user.log")
-    except Exception as e:
-        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
-    logger.debug("*** following_user() END ***")
-    return resData
+# def following_user(teamId=0):
+#     logger.debug("*** following_user() START ***")
+#     accountId = twitterIdByTeamId(teamId)
+#     url = "https://api.twitter.com/2/users/" + accountId + "/following?user.fields=id"
+#     activeAccount = oauthByTeamId(teamId)
+#     resData = None
+#     try:
+#         req = activeAccount.get(url)
+#         # 汎用メソッドでレスポンスからデータを取り出す
+#         resData = content_by_req(req)
+#         logWriter(resData, "following_user.log")
+#     except Exception as e:
+#         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+#     logger.debug("*** following_user() END ***")
+#     return resData
 
 """
 (GET) フォロワー一覧を取得します
 ページング未対応
 """
-def followers(teamId=0):
-    logger.debug("*** followers() START ***")
-    resData = None
-    accountId = twitterIdByTeamId(teamId)
-    url = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
-    activeAccount = oauthByTeamId(teamId)
-    try:
-        req = activeAccount.get(url)
-        # 汎用メソッドでレスポンスからデータを取り出す
-        resData = content_by_req(req)
-        logWriter(resData, "followers.log")
-    except Exception as e:
-        logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
-    logger.debug("*** followers() END ***")
-    return resData
+# def followers(teamId=0):
+#     logger.debug("*** followers() START ***")
+#     resData = None
+#     accountId = twitterIdByTeamId(teamId)
+#     url = "https://api.twitter.com/2/users/" + accountId + "/followers?user.fields=id"
+#     activeAccount = oauthByTeamId(teamId)
+#     try:
+#         req = activeAccount.get(url)
+#         # 汎用メソッドでレスポンスからデータを取り出す
+#         resData = content_by_req(req)
+#         logWriter(resData, "followers.log")
+#     except Exception as e:
+#         logWriter(str(sys.exc_info()) + " " + str(e) + " " + str(location()), "exception.log")
+#     logger.debug("*** followers() END ***")
+#     return resData
 
 """
 (GET) ツイートを取得します
@@ -396,40 +396,41 @@ Javaから呼んでます
 '''
 @route('/twFolB', method='GET')
 def twitter_folB():
-    logger.debug("*** twitter_folB() START ***")
+    # logger.debug("*** twitter_folB() START ***")
 
-    teamId = request.query.get('teamId')
+    # teamId = request.query.get('teamId')
 
-    # フォローしてる人を確認します
-    followingRes = following_user(teamId)
+    # # フォローしてる人を確認します
+    # followingRes = following_user(teamId)
 
-    # フォロワーを検索します
-    followerRes = followers(teamId)
+    # # フォロワーを検索します
+    # followerRes = followers(teamId)
 
-    # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
-    followTargetArr = []
-    followingUserId = []
-    if followingRes != None and 'data' in followingRes.keys():
-        for userId in followingRes["data"]:
-            followingUserId.append(userId["id"])
+    # # フォローしてる人の中に入っていないフォロワーは今回Jobでのフォロー対象
+    # followTargetArr = []
+    # followingUserId = []
+    # if followingRes != None and 'data' in followingRes.keys():
+    #     for userId in followingRes["data"]:
+    #         followingUserId.append(userId["id"])
 
-    followerUserId = []
-    if followerRes != None and 'data' in followerRes.keys():
-        for userId in followerRes["data"]:
-            followerUserId.append(userId["id"])
+    # followerUserId = []
+    # if followerRes != None and 'data' in followerRes.keys():
+    #     for userId in followerRes["data"]:
+    #         followerUserId.append(userId["id"])
 
-    if followerUserId:
-        for twiId in followerUserId:
-            if twiId not in followingUserId:
-                followTargetArr.append(twiId)
+    # if followerUserId:
+    #     for twiId in followerUserId:
+    #         if twiId not in followingUserId:
+    #             followTargetArr.append(twiId)
     
-    if len(followTargetArr) > 0:
-        for targetId in followTargetArr:
-            follow_res = follow_user(teamId, targetId)
+    # if len(followTargetArr) > 0:
+    #     for targetId in followTargetArr:
+    #         follow_res = follow_user(teamId, targetId)
 
-    response = setResponse(200, "Faved!")
-    # logger.debug("*** twitter_folB() END ***")
-    return response
+    # response = setResponse(200, "Faved!")
+    # # logger.debug("*** twitter_folB() END ***")
+    # return response
+    return None
 
 """
 私のツイートをファボ/リツイ/リプしてくれた人の最新の投稿（ランダムx件）にいいねをつけに行きます
@@ -516,7 +517,7 @@ teamIdを渡せばOAuthオブジェクトを返却します
 ジャニ以外のTwitterアカも対応
 """
 def oauthByTeamId(teamId=0):
-    logger.debug("*** oauthByTeamId() START ***")
+    logger.debug("*** oauthByTeamId() START *** teamId: " + teamId)
 
     if type(teamId) == str:
         teamId = int(teamId)
@@ -548,21 +549,21 @@ def oauthByTeamId(teamId=0):
         elif teamId == 8: # Sexy Zone
             logger.debug(8)
             activeAccount = OAuth1Session(sexyzone_consumer_key, sexyzone_consumer_secret, sexyzone_token, sexyzone_token_secret, client_class=CustomClient)
-        elif teamId == 100: # @LjtYdg
-            logger.debug(100)
-            activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret, client_class=CustomClient)
+        # elif teamId == 100: # @LjtYdg
+        #     logger.debug(100)
+        #     activeAccount = OAuth1Session(love_consumer_key, love_consumer_secret, love_token, love_token_secret, client_class=CustomClient)
         elif teamId == 101: # @ChiccaSalak
             logger.debug(101)
             activeAccount = OAuth1Session(tosi_consumer_key, tosi_consumer_secret, tosi_token, tosi_token_secret, client_class=CustomClient)
-        elif teamId == 102: # @BlogChicca
-            logger.debug(102)
-            activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret, client_class=CustomClient)
+        # elif teamId == 102: # @BlogChicca
+        #     logger.debug(102)
+        #     activeAccount = OAuth1Session(engineer_consumer_key, engineer_consumer_secret, engineer_token, engineer_token_secret, client_class=CustomClient)
         elif teamId == 103: # @Berry_chicca
             logger.debug(103)
             activeAccount = OAuth1Session(berry_consumer_key, berry_consumer_secret, berry_token, berry_token_secret, client_class=CustomClient)
-        elif teamId == 104: # @guts_da_ze__
-            logger.debug(104)
-            activeAccount = OAuth1Session(lider_consumer_key, lider_consumer_secret, lider_token, lider_token_secret, client_class=CustomClient)
+        # elif teamId == 104: # @guts_da_ze__
+        #     logger.debug(104)
+        #     activeAccount = OAuth1Session(lider_consumer_key, lider_consumer_secret, lider_token, lider_token_secret, client_class=CustomClient)
         else: # General Account
             logger.debug("General", teamId)
             activeAccount = OAuth1Session(consumer_key, consumer_secret, token, token_secret, client_class=CustomClient)
@@ -594,12 +595,12 @@ def twitterIdByTeamId(teamId):
             result = "1418288638345965568"
         elif teamId == 8: # Sexy Zone
             result = "1418289988827901953"
-        elif teamId == 100: # @LjtYdg
-            result = "1478868616657645570"
+        # elif teamId == 100: # @LjtYdg
+        #     result = "1478868616657645570"
         elif teamId == 101: # @ChiccaSalak
             result = "1329526833461661696"
-        elif teamId == 102: # @BlogChicca
-            result = "1353959290596331523"
+        # elif teamId == 102: # @BlogChicca
+        #     result = "1353959290596331523"
         elif teamId == 103: # @Berry_chicca
             result = "1267562271036674049"
         elif teamId == 104: # @guts_da_ze__

@@ -50,10 +50,10 @@ kinki_token_secret = "nQdkWWNyrFeiK9E6Pij9LFOuhsKioEvBbZnvNV9tBP0Um"
 
 ### 以下、ついでにジャニと関係ないアカウントも自動化したいので入れる
 # @LjtYdg
-love_consumer_key = "bJZBNKtNwO5fmuRl7C2TqjxTV"
-love_consumer_secret = "TIdFk88bpJjxdpCE8kmEyXK8h6MM03B3T1C8ueO3e14t4LogsP"
-love_token = "1478868616657645570-u0qb0WQYKKj5DKbtx4tPHBd4dYz2tN"
-love_token_secret = "S9HQ2mLerySfhBkVnz8BHE7wv6oCRdRBL1T2D35tAEZlH"
+# love_consumer_key = "bJZBNKtNwO5fmuRl7C2TqjxTV"
+# love_consumer_secret = "TIdFk88bpJjxdpCE8kmEyXK8h6MM03B3T1C8ueO3e14t4LogsP"
+# love_token = "1478868616657645570-u0qb0WQYKKj5DKbtx4tPHBd4dYz2tN"
+# love_token_secret = "S9HQ2mLerySfhBkVnz8BHE7wv6oCRdRBL1T2D35tAEZlH"
 
 # @ChiccaSalak
 tosi_consumer_key = "9mC49K6eS4bGwcmw8Etg5FeK4"
@@ -62,10 +62,10 @@ tosi_token = "1329526833461661696-9ZOKok3eiemJdP1oz7xGv9mkBp7oyE"
 tosi_token_secret = "6JXAP0EktrvMNd5sWCR5AcoAEG7LPV7tT8a3wibDTrXXg"
 
 # @BlogChicca
-engineer_consumer_key = "Q11lWRo58G4m9BZEWl0hC80Q5"
-engineer_consumer_secret = "5WA0Ll7eQSaJXwrtWvwNxFoVrKSMzoL3wA2PN6pEev5o571nGD"
-engineer_token = "1353959290596331523-323PhNbBgUXpm5ELfGRv9qYgiom6U5"
-engineer_token_secret = "oucWvYDkyCoEFwsP00pfEm9dloikAFBBeydTnSMK2KgGQ"
+# engineer_consumer_key = "Q11lWRo58G4m9BZEWl0hC80Q5"
+# engineer_consumer_secret = "5WA0Ll7eQSaJXwrtWvwNxFoVrKSMzoL3wA2PN6pEev5o571nGD"
+# engineer_token = "1353959290596331523-323PhNbBgUXpm5ELfGRv9qYgiom6U5"
+# engineer_token_secret = "oucWvYDkyCoEFwsP00pfEm9dloikAFBBeydTnSMK2KgGQ"
 
 # @Berry_chicca
 berry_consumer_key = "Emn16DdllpS6qqnQOjOplqhKf"
@@ -74,10 +74,10 @@ berry_token = "1267562271036674049-beuF31caj0RvGaYWNJEmOtIghNCuUb"
 berry_token_secret = "WLpdR7adwdBmQxsFc3h0mjm2idR2A5pJKgp0H4rNlRodv"
 
 # @guts_da_ze__
-lider_consumer_key = "O2emuBzPD5HeqTtnqCzbeYnt0"
-lider_consumer_secret = "G3njaOdNmXIjuN5gYmlMNIVMxyAy942qbOyKfng2SWZHLjHen2"
-lider_token = "1557146921080606720-ksQM6moLm5D326urygu0YluqpD6Hjm"
-lider_token_secret = "o8UbespoBdpGtukHrjMamufIN7FhvXcDpg7CkasG744yc"
+# lider_consumer_key = "O2emuBzPD5HeqTtnqCzbeYnt0"
+# lider_consumer_secret = "G3njaOdNmXIjuN5gYmlMNIVMxyAy942qbOyKfng2SWZHLjHen2"
+# lider_token = "1557146921080606720-ksQM6moLm5D326urygu0YluqpD6Hjm"
+# lider_token_secret = "o8UbespoBdpGtukHrjMamufIN7FhvXcDpg7CkasG744yc"
 
 class Teams:
     snowman=[6,"スノーマン",None,"Snow Man"]
